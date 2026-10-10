@@ -1,4 +1,4 @@
-# 🏙️ Sunny Sidewalk (Little Town 3D Exploration)
+# 🏙️ A Day in City
 > **Tugas Praktikum / Proyek Mata Kuliah: Introduction to Game Development**  
 > Proyek simulasi dan eksplorasi lingkungan kota 3D dengan karakter pemain sudut pandang orang ketiga (*Third-Person*), NPC otonom mandiri dengan kecerdasan buatan (*AI Obstacle Avoidance*), serta sistem balon dialog dan subtitle beresolusi tinggi.
 
