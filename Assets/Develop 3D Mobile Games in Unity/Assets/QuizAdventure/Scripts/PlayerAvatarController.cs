@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections;
 using UnityEngine;
 using UnityEngine.EventSystems;
@@ -20,10 +20,16 @@ public class PlayerAvatarController : MonoBehaviour {
         objectMotor = GetComponent<MovableObjectMotor>();     //get a reference to the MovableObjectMotor in the scene
         walkableMask = 1 << 8;                                //Make sure the Layer Mask is set to Layer 8 which should always be "EnvironmentWalkable" 
 
-        inputManager = GameObject.Find("InputManagerObj").GetComponent<InputManager>();    //get a reference to the InputManager in the scene
-
-        inputManager.ClickDownEvent += OnClickDown;           //register to the ClickDownEvent on the InputManager so we get notified when the player clicks the LeftMouseButton
-        inputManager.EscEvent += OnEscPressed;                //register to the EscEvent on the InputManager so we get notified when the player presses the Esc key or clicks the Home icon in the GUI
+        GameObject inputObj = GameObject.Find("InputManagerObj");
+        if (inputObj != null)
+        {
+            inputManager = inputObj.GetComponent<InputManager>();
+            if (inputManager != null)
+            {
+                inputManager.ClickDownEvent += OnClickDown;
+                inputManager.EscEvent += OnEscPressed;
+            }
+        }
     }
     public void OnEscPressed(object source, EventArgs e)     //when the Esc key event is fired
     {

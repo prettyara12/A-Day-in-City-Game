@@ -35,23 +35,60 @@ public class QuizMaster : MonoBehaviour {
     [Tooltip("What is the response the Quzmaster will give?")]
     string responseForCorrectAnswer, responseForWrongAnswer;    //The responses for correct and incorrect answers
 
+    [Header("Mode Instruksi Langsung (Tanpa Kuis POI)")]
+    [SerializeField]
+    private bool directInstructionMode = true;
+
+    [SerializeField]
+    [TextArea(2, 4)]
+    private string directInstructionText = "Halo! Aku Quizmaster Steve. Gerbang portal di trotoar sebelah kanan sudah kubuka, pergilah ke sana untuk menuju ke level berikutnya!";
+
+    [SerializeField]
+    private bool useOverlayDialogue = true;
+
     private bool bIsPortalOpen = false;  //Has the Player already won?
 
     // Use this for initialization
     void Start () {
         bIsPortalOpen = false;
-        pOIs = FindObjectsByType<PointOfInterest>(FindObjectsInactive.Exclude);                  //Find all the POIs in the level and add them to an array
-        chosenPOI = pOIs[UnityEngine.Random.Range(0, pOIs.Length)];   //make a random choice in the array and assign that POI to the chosenPOI var
-        chosenPOI.UITriggeredEvent += POITriggered;                   //assign our POITriggered method to the Event on the chosen POI
-        /*This is the intro text for the Quizmaster that will display when the Player first meets them*/
-        introTextBox.text = "Hi I'm Quizmaster Steve. \n Go to the " + chosenPOI.pOIName + " and learn about it.  Then come back and answer a question about the " + chosenPOI.pOIName + " correctly and I'll teleport you to a new location!";
-        SetupQuestionUI();                                            //Set up the Question UI
-        portal = GameObject.Find("ExitPortal");                       //Get a reference to the Portal object in the level
-        if(portal != null)
+
+        // Cari referensi ExitPortal terlebih dahulu (termasuk inactive)
+        if (portal == null)
         {
-            portal.SetActive(false);                                      //Deactivate the Portal object
+            portal = GameObject.Find("ExitPortal");
+            if (portal == null)
+            {
+                PortalExit pe = FindAnyObjectByType<PortalExit>(FindObjectsInactive.Include);
+                if (pe != null) portal = pe.gameObject;
+            }
         }
-        
+        if (portal != null)
+        {
+            portal.SetActive(false); // Sembunyikan portal di awal permainan
+        }
+
+        pOIs = FindObjectsByType<PointOfInterest>(FindObjectsInactive.Exclude);
+        if (pOIs != null && pOIs.Length > 0 && !directInstructionMode)
+        {
+            chosenPOI = pOIs[UnityEngine.Random.Range(0, pOIs.Length)];
+            if (chosenPOI != null)
+            {
+                chosenPOI.UITriggeredEvent += POITriggered;
+                if (introTextBox != null)
+                {
+                    introTextBox.text = "Hi I'm Quizmaster Steve. \n Go to the " + chosenPOI.pOIName + " and learn about it.  Then come back and answer a question about the " + chosenPOI.pOIName + " correctly and I'll teleport you to a new location!";
+                }
+                SetupQuestionUI();
+            }
+        }
+        else
+        {
+            directInstructionMode = true; // Fallback otomatis ke instruksi langsung jika scene tanpa POI
+            if (pOICanvas != null)
+            {
+                pOICanvas.gameObject.SetActive(false); // Sembunyikan kanvas miring agar kota bersih
+            }
+        }
     }
 
     void SetupQuestionUI()  //we will cycle through the availible answers on the POI and add the answer text to a random button in this objects canvas  This will make each playthrough have a different order of answers so the Player cannot memorize the answer location
@@ -109,63 +146,86 @@ public class QuizMaster : MonoBehaviour {
 
     private void OnTriggerEnter(Collider other)
     {
-        if (other.gameObject.tag == "Player")                              //if the player is colliding with the Quizmasters trigger collider
+        bool isPlayer = other.CompareTag("Player") ||
+                        (other.transform.root != null && other.transform.root.CompareTag("Player")) ||
+                        other.GetComponentInParent<PlayerController>() != null ||
+                        other.GetComponent<PlayerController>() != null ||
+                        other.gameObject.name.Contains("Trucker") ||
+                        other.gameObject.name.Contains("Player");
+
+        if (isPlayer)
         {
+            if (directInstructionMode)
+            {
+                TurnOnPortal();
+                if (useOverlayDialogue)
+                {
+                    NPCDialogueOverlay.ShowDialogue(transform, "Quizmaster Steve", directInstructionText, true, 0.20f);
+                }
+                if (pOICanvas != null)
+                {
+                    pOICanvas.gameObject.SetActive(false);
+                }
+                return;
+            }
+
             if (!bIsPortalOpen)
             {
-                
-                if (!bPlayerFoundInfo)                                         //if the player has not actually traveled to the chosenPOI
+                if (!bPlayerFoundInfo)
                 {
                     EnablePanels(true, false, false, true);
-                                                   //Enable the intro text panel 
-                                               //Disable the question text panel
-                                                //Disable the response text panel
-                    
                 }
-
-                else                                                           //if the player has actually traveled to the chosenPOI
+                else
                 {
                     InputManager.bCanPlayerMove = false;
                     EnablePanels(false, true, false, true);
-                                                   //Disable the intro text panel
-                                                 //Enable the question text panel
-                                                //Disable the response text panel
                 }
             }
             else
             {
                 EnablePanels(false, false, true, true);
-                responseTextBox.text = responseForCorrectAnswer;
+                if (responseTextBox != null) responseTextBox.text = responseForCorrectAnswer;
             }
-            
         }
-        
     }
 
     private void OnTriggerExit(Collider other)
     {
-        if (other.gameObject.tag == "Player")                              //if the player is no longer colliding with the Quizmasters trigger collider
+        bool isPlayer = other.CompareTag("Player") ||
+                        (other.transform.root != null && other.transform.root.CompareTag("Player")) ||
+                        other.GetComponentInParent<PlayerController>() != null ||
+                        other.GetComponent<PlayerController>() != null ||
+                        other.gameObject.name.Contains("Trucker") ||
+                        other.gameObject.name.Contains("Player");
+
+        if (isPlayer)
         {
+            if (useOverlayDialogue)
+            {
+                NPCDialogueOverlay.ShowDialogue(transform, "Quizmaster Steve", "", false);
+            }
             EnablePanels();
-                                              //Disable the intro text panel
-                                           //Disable the question text panel
-                                            //Disable the response text panel
-                                                 //Disable the canvas
         }
     }
 
     public void POITriggered(object source, EventArgs e)
     {
-        bPlayerFoundInfo = true;                                           //when the Event on the chosenPOI is fired set the bPlayerFoundInfo to true so the Quizmaster will ask a question the next time the player talks to them
+        bPlayerFoundInfo = true;
     }
 
     private void TurnOnPortal()
     {
         bIsPortalOpen = true;
+        if (portal == null)
+        {
+            PortalExit pe = FindAnyObjectByType<PortalExit>(FindObjectsInactive.Include);
+            if (pe != null) portal = pe.gameObject;
+            if (portal == null) portal = GameObject.Find("ExitPortal");
+        }
         if (portal != null)
         {
-            portal.SetActive(true);                                            //set the Portal object to active so the player can travel to the next level
+            portal.SetActive(true);
+            Debug.Log("[QuizMaster] ExitPortal di trotoar sebelah kanan berhasil diaktifkan!");
         }
-           
     }
 }

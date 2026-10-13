@@ -55,6 +55,8 @@ public class NPCDialogueOverlay : MonoBehaviour
 
     // Active Dialogue Tracking
     private NPCWalker activeSpeaker;
+    private Transform activeSpeakerTransform;
+    private float activeSpeakerHeightOffset = 0.20f;
     private string activeSpeakerName;
     private string activeMessage;
 
@@ -314,12 +316,20 @@ public class NPCDialogueOverlay : MonoBehaviour
 
     public static void ShowDialogue(NPCWalker speaker, string speakerName, string line, bool show)
     {
+        float offset = (speaker != null && speaker.isSittingPermanently) ? 0.11f : 0.20f;
+        ShowDialogue(speaker != null ? speaker.transform : null, speakerName, line, show, offset);
+        if (instance != null) instance.activeSpeaker = show ? speaker : null;
+    }
+
+    public static void ShowDialogue(Transform speakerTransform, string speakerName, string line, bool show, float heightOffset = 0.20f)
+    {
         // 1. Jika hanya ingin menyembunyikan dialog, jangan pernah panggil EnsureInstance() atau buat objek baru
         if (!show)
         {
-            if (instance != null && instance.activeSpeaker == speaker)
+            if (instance != null && (instance.activeSpeakerTransform == speakerTransform || speakerTransform == null))
             {
                 instance.activeSpeaker = null;
+                instance.activeSpeakerTransform = null;
                 if (instance.overheadBubbleObj != null) instance.overheadBubbleObj.SetActive(false);
                 if (instance.subtitleBarObj != null) instance.subtitleBarObj.SetActive(false);
             }
@@ -331,7 +341,8 @@ public class NPCDialogueOverlay : MonoBehaviour
         EnsureInstance();
         if (instance == null) return;
 
-        instance.activeSpeaker = speaker;
+        instance.activeSpeakerTransform = speakerTransform;
+        instance.activeSpeakerHeightOffset = heightOffset;
         instance.activeSpeakerName = speakerName;
         instance.activeMessage = line;
 
@@ -347,7 +358,7 @@ public class NPCDialogueOverlay : MonoBehaviour
 
     private void LateUpdate()
     {
-        if (activeSpeaker != null && overheadBubbleObj != null && overheadBubbleObj.activeSelf)
+        if (activeSpeakerTransform != null && overheadBubbleObj != null && overheadBubbleObj.activeSelf)
         {
             UpdateOverheadPosition();
         }
@@ -355,17 +366,14 @@ public class NPCDialogueOverlay : MonoBehaviour
 
     private void UpdateOverheadPosition()
     {
-        if (activeSpeaker == null) return;
+        if (activeSpeakerTransform == null) return;
 
         Camera cam = Camera.main;
         if (cam == null) cam = Object.FindAnyObjectByType<Camera>();
         if (cam == null) return;
 
         // Posisi kepala di dunia 3D:
-        // Pada skala 0.1, tinggi karakter humanoid normal adalah 0.18m.
-        // Jika duduk: 0.11m.
-        float headWorldOffset = activeSpeaker.isSittingPermanently ? 0.11f : 0.20f;
-        Vector3 headWorldPos = activeSpeaker.transform.position + Vector3.up * headWorldOffset;
+        Vector3 headWorldPos = activeSpeakerTransform.position + Vector3.up * activeSpeakerHeightOffset;
 
         Vector3 screenPos = cam.WorldToScreenPoint(headWorldPos);
 

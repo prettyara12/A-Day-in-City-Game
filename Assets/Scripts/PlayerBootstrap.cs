@@ -114,6 +114,31 @@ public static class PlayerBootstrap
             "OK");
     }
 
+    [MenuItem("Tools/🌀 Setup Steve & Portal Transition (Modul 7)", false, 2)]
+    public static void MenuSetupSteveAndPortal()
+    {
+        EnsureEnvironmentColliders();
+        GameObject playerGo = EnsurePlayerCharacter();
+        SetupAllNPCs(playerGo);
+        EnsureSteveAndPortal();
+
+        UnityEditor.SceneManagement.EditorSceneManager.MarkSceneDirty(
+            UnityEditor.SceneManagement.EditorSceneManager.GetActiveScene()
+        );
+
+        EditorUtility.DisplayDialog("Setup Steve & Portal Selesai!",
+            "Quizmaster Steve dan ExitPortal berhasil dikonfigurasi:\n\n" +
+            "1. QUIZMASTER STEVE: Berdiri di trotoar depan Coffee Shop.\n" +
+            "   • Kanvas miring raksasa lama dinonaktifkan.\n" +
+            "   • Balon dialog & subtitle otomatis muncul saat Player mendekat.\n" +
+            "   • Memberi instruksi langsung ke portal.\n\n" +
+            "2. EXIT PORTAL: Terpasang di trotoar kanan depan halte/billboard.\n" +
+            "   • Tersembunyi di awal, otomatis aktif saat bicara dengan Steve.\n" +
+            "   • Memicu transisi Fade to Black saat dimasuki dan memuat Level 1 (Build index 1).\n\n" +
+            "Klik tombol Play (▶) untuk langsung mencoba!",
+            "OK");
+    }
+
     [MenuItem("Tools/👥 Setup 2 NPC (Wanita Melompat di Tempat & Pria Berjalan Melawan Arah)", false, 3)]
     public static void MenuSetupTwoNPCs()
     {
@@ -217,7 +242,10 @@ public static class PlayerBootstrap
         }
         NPCDialogueOverlay.EnsureInstance();
 
-        Debug.Log("[PlayerBootstrap] Berhasil mengonfigurasi 1 Player (WASD) dan 2 NPC Mandiri (Wanita Melompat di Tempat & Pria Berjalan Melawan Arah)!");
+        // 8. Setup Quizmaster Steve & ExitPortal Transisi Level (Modul 7)
+        EnsureSteveAndPortal();
+
+        Debug.Log("[PlayerBootstrap] Berhasil mengonfigurasi 1 Player (WASD), NPC Mandiri, serta Quizmaster Steve & Portal Transition!");
     }
 
     /// <summary>
@@ -430,6 +458,7 @@ public static class PlayerBootstrap
         {
             if (go == playerGo) continue;
             if (go.name.StartsWith("CH_") || go.name.Contains("_jnt")) continue;
+            if (go.name.Contains("Steve") || go.name.Contains("Quiz")) continue;
 
             if (femaleNpc == null && (go.name == "SimplePeople_Waitress_White" || 
                                      go.name == "NPC_Wanita_Melompat" || 
@@ -452,6 +481,7 @@ public static class PlayerBootstrap
             {
                 if (go == playerGo) continue;
                 if (go == femaleNpc || go == maleNpc) continue;
+                if (go.name.Contains("Steve") || go.name.Contains("Quiz")) continue;
                 // Abaikan sub-mesh CH_ atau objek anak
                 if (go.name.StartsWith("CH_") || go.name.Contains("_jnt")) continue;
                 if (go.transform.parent != null && (go.transform.parent.name.StartsWith("SimplePeople") || 
@@ -1376,6 +1406,14 @@ public static class PlayerBootstrap
         foreach (var go in allGo)
         {
             if (go.name.Contains("_jnt") || go.name.StartsWith("CH_")) continue;
+            if (go.GetComponent<RectTransform>() != null || 
+                go.name.Contains("Fade") || 
+                go.name.Contains("Portal") || 
+                go.name.Contains("Canvas") || 
+                go.name.Contains("UI"))
+            {
+                continue;
+            }
 
             bool isCharacter = go.name.StartsWith("NPC_Walker") || 
                                go.name.StartsWith("SimplePeople") || 
@@ -1455,6 +1493,241 @@ public static class PlayerBootstrap
         else
         {
             Object.Destroy(go);
+        }
+    }
+
+    /// <summary>
+    /// Menyiapkan Quizmaster Steve dan ExitPortal sesuai Modul 7:
+    /// - Steve berdiri di trotoar kiri (Coffee Shop) dengan instruksi langsung.
+    /// - Kanvas miring raksasa di atas Steve dinonaktifkan otomatis.
+    /// - ExitPortal di trotoar kanan disiapkan dengan collider trigger dan PortalExit script.
+    /// - ExitPortal disembunyikan di awal, lalu aktif saat pemain berbicara dengan Steve.
+    /// - Canvas_FadeTransition dan Fade Panel dipastikan aktif.
+    /// </summary>
+    public static void EnsureSteveAndPortal()
+    {
+        // 1. Cari atau Siapkan Quizmaster Steve
+        GameObject steveGo = GameObject.Find("Quizmaster Steve");
+        if (steveGo == null)
+        {
+            GameObject[] allGo = Object.FindObjectsByType<GameObject>(FindObjectsInactive.Include);
+            foreach (var go in allGo)
+            {
+                if (go.name.Contains("Quizmaster") || go.name.Contains("Steve"))
+                {
+                    steveGo = go;
+                    break;
+                }
+            }
+        }
+
+        if (steveGo != null)
+        {
+            steveGo.name = "Quizmaster Steve";
+            steveGo.tag = "NPC";
+            steveGo.transform.localScale = new Vector3(0.1f, 0.1f, 0.1f);
+
+            Vector3 sPos = steveGo.transform.position;
+            if (sPos.magnitude < 1f || sPos.y < 0f)
+            {
+                steveGo.transform.position = new Vector3(316.713f, 0.02f, 10.615f);
+                steveGo.transform.rotation = Quaternion.Euler(0f, 90f, 0f);
+            }
+
+            // Pastikan tidak ada NPCWalker agar Steve tidak berjalan sembarangan
+            NPCWalker oldW = steveGo.GetComponent<NPCWalker>();
+            if (oldW != null) DestroyComponentSafe(oldW);
+
+            // Sembunyikan kanvas miring world space bawaan prefab
+            Transform canvasChild = steveGo.transform.Find("Canvas");
+            if (canvasChild != null)
+            {
+                canvasChild.gameObject.SetActive(false);
+            }
+
+            // Pastikan CapsuleCollider Trigger ada dan luasnya cukup untuk interaksi
+            CapsuleCollider cc = steveGo.GetComponent<CapsuleCollider>();
+            if (cc == null) cc = steveGo.AddComponent<CapsuleCollider>();
+            cc.isTrigger = true;
+            cc.center = new Vector3(0f, 0.9f, 0f);
+            cc.radius = 1.5f;
+            cc.height = 1.8f;
+
+            // Pastikan QuizMaster script terpasang
+            QuizMaster qm = steveGo.GetComponent<QuizMaster>();
+            if (qm == null) qm = steveGo.AddComponent<QuizMaster>();
+
+            AutoEnsureCharacterMaterial(steveGo);
+        }
+
+        // 2. Cari atau Siapkan ExitPortal
+        GameObject portalGo = null;
+        PortalExit pe = Object.FindAnyObjectByType<PortalExit>(FindObjectsInactive.Include);
+        if (pe != null) portalGo = pe.gameObject;
+        if (portalGo == null) portalGo = GameObject.Find("ExitPortal");
+
+        if (portalGo == null)
+        {
+            GameObject[] allGo = Object.FindObjectsByType<GameObject>(FindObjectsInactive.Include);
+            foreach (var go in allGo)
+            {
+                if (go.name.Contains("Portal") || go.name.Contains("ExitPortal"))
+                {
+                    portalGo = go;
+                    break;
+                }
+            }
+        }
+
+#if UNITY_EDITOR
+        if (portalGo == null)
+        {
+            GameObject portalPrefab = AssetDatabase.LoadAssetAtPath<GameObject>("Assets/Develop 3D Mobile Games in Unity/Assets/QuizAdventure/Prefabs/ExitPortal.prefab");
+            if (portalPrefab != null)
+            {
+                portalGo = PrefabUtility.InstantiatePrefab(portalPrefab) as GameObject;
+                if (portalGo != null)
+                {
+                    portalGo.name = "ExitPortal";
+                    portalGo.transform.position = new Vector3(318.844f, 0.216f, 9.84f);
+                    portalGo.transform.rotation = Quaternion.Euler(0f, 90f, 0f);
+                    portalGo.transform.localScale = new Vector3(0.2f, 0.2f, 0.1f);
+                }
+            }
+        }
+#endif
+
+        if (portalGo != null)
+        {
+            portalGo.name = "ExitPortal";
+            portalGo.transform.localScale = new Vector3(0.2f, 0.2f, 0.1f);
+            // Menghadap ke jalan (ke arah pemain yang datang) sesuai Gambar 2 (Rotation Y = 90)
+            portalGo.transform.rotation = Quaternion.Euler(0f, 90f, 0f);
+            if (portalGo.transform.position.y < 0.2f)
+            {
+                Vector3 curPos = portalGo.transform.position;
+                portalGo.transform.position = new Vector3(curPos.x, 0.216f, curPos.z);
+            }
+
+            SphereCollider sc = portalGo.GetComponent<SphereCollider>();
+            if (sc == null) sc = portalGo.AddComponent<SphereCollider>();
+            sc.isTrigger = true;
+            sc.center = Vector3.zero;
+            sc.radius = 1.6f;
+
+            PortalExit exitScript = portalGo.GetComponent<PortalExit>();
+            if (exitScript == null) exitScript = portalGo.AddComponent<PortalExit>();
+            exitScript.secondsOfFade = 1.0f; // Durasi transisi fade to black 1 detik sesuai standar
+
+            // Pastikan material portal vortex warna ungu asli (ExitPortal_MAT.mat)
+            MeshRenderer mr = portalGo.GetComponent<MeshRenderer>();
+            if (mr != null)
+            {
+#if UNITY_EDITOR
+                Material pMat = AssetDatabase.LoadAssetAtPath<Material>("Assets/Develop 3D Mobile Games in Unity/Assets/QuizAdventure/Materials/ExitPortal_MAT.mat");
+                if (pMat != null)
+                {
+                    mr.sharedMaterial = pMat;
+                }
+#endif
+            }
+        }
+
+        // 3. Pastikan Canvas_FadeTransition dan Fade Panel ada di scene
+        EnsureFadePanel();
+    }
+
+    private static void EnsureFadePanel()
+    {
+        // 1. Pastikan Canvas_FadeTransition ada dan dikonfigurasi fullscreen
+        GameObject canvasFade = GameObject.Find("Canvas_FadeTransition");
+        if (canvasFade == null)
+        {
+            canvasFade = new GameObject("Canvas_FadeTransition");
+        }
+
+        Canvas c = canvasFade.GetComponent<Canvas>();
+        if (c == null) c = canvasFade.AddComponent<Canvas>();
+        c.renderMode = RenderMode.ScreenSpaceOverlay;
+        c.sortingOrder = 999; // Urutan rendering paling depan
+
+        UnityEngine.UI.CanvasScaler cs = canvasFade.GetComponent<UnityEngine.UI.CanvasScaler>();
+        if (cs == null) cs = canvasFade.AddComponent<UnityEngine.UI.CanvasScaler>();
+        cs.uiScaleMode = UnityEngine.UI.CanvasScaler.ScaleMode.ScaleWithScreenSize;
+        cs.referenceResolution = new Vector2(1280, 720);
+        cs.screenMatchMode = UnityEngine.UI.CanvasScaler.ScreenMatchMode.MatchWidthOrHeight;
+        cs.matchWidthOrHeight = 0.5f;
+
+        if (canvasFade.GetComponent<UnityEngine.UI.GraphicRaycaster>() == null)
+        {
+            canvasFade.AddComponent<UnityEngine.UI.GraphicRaycaster>();
+        }
+
+        // 2. Cari atau Instantiate Fade Panel
+        GameObject fadePanelGo = null;
+        Transform existingChild = canvasFade.transform.Find("Fade Panel");
+        if (existingChild != null) fadePanelGo = existingChild.gameObject;
+
+        if (fadePanelGo == null)
+        {
+            Animator[] anims = Object.FindObjectsByType<Animator>(FindObjectsInactive.Include, FindObjectsSortMode.None);
+            foreach (var anim in anims)
+            {
+                if (anim.gameObject.name.Contains("Fade"))
+                {
+                    fadePanelGo = anim.gameObject;
+                    break;
+                }
+            }
+        }
+
+#if UNITY_EDITOR
+        if (fadePanelGo == null)
+        {
+            GameObject fadePrefab = AssetDatabase.LoadAssetAtPath<GameObject>("Assets/Develop 3D Mobile Games in Unity/Assets/QuizAdventure/Prefabs/Fade Panel.prefab");
+            if (fadePrefab != null)
+            {
+                fadePanelGo = PrefabUtility.InstantiatePrefab(fadePrefab, canvasFade.transform) as GameObject;
+            }
+        }
+#endif
+
+        if (fadePanelGo != null)
+        {
+            fadePanelGo.name = "Fade Panel";
+            fadePanelGo.transform.SetParent(canvasFade.transform, false);
+
+            // Skala WAJIB Vector3.one (1, 1, 1) agar tidak menciut menjadi kotak kecil (0.1x)
+            fadePanelGo.transform.localScale = Vector3.one;
+
+            RectTransform rt = fadePanelGo.GetComponent<RectTransform>();
+            if (rt != null)
+            {
+                rt.localScale = Vector3.one;
+                rt.anchorMin = Vector2.zero;
+                rt.anchorMax = Vector2.one;
+                rt.offsetMin = Vector2.zero;
+                rt.offsetMax = Vector2.zero;
+                rt.sizeDelta = Vector2.zero;
+                rt.anchoredPosition = Vector2.zero;
+                rt.pivot = new Vector2(0.5f, 0.5f);
+            }
+
+            // Pastikan Image menggunakan warna hitam flat solid tanpa terdistorsi/terpotong sprite tombol
+            UnityEngine.UI.Image img = fadePanelGo.GetComponent<UnityEngine.UI.Image>();
+            if (img != null)
+            {
+                img.sprite = null; // Hapus referensi button_square agar solid flat fullscreen
+                img.type = UnityEngine.UI.Image.Type.Simple;
+                img.preserveAspect = false;
+                img.raycastTarget = false;
+            }
+
+            // Nonaktifkan tombol menu anak (Quit, Return, Home) agar layar transisi bersih
+            for (int i = 0; i < fadePanelGo.transform.childCount; i++)
+            {
+                fadePanelGo.transform.GetChild(i).gameObject.SetActive(false);
+            }
         }
     }
 }

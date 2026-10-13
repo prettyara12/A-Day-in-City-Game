@@ -1,4 +1,4 @@
-﻿using System.Collections;
+using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using System;
@@ -12,8 +12,15 @@ public class EscUIController : MonoBehaviour {
 
     // Use this for initialization.
     void Start () {
-        inputManager = GameObject.Find("InputManagerObj").GetComponent<InputManager>();  // Get a reference to the InputManager in the scene
-        inputManager.EscEvent += OnEscPressed;      // Register for an Event callback
+        GameObject inputObj = GameObject.Find("InputManagerObj");
+        if (inputObj != null)
+        {
+            inputManager = inputObj.GetComponent<InputManager>();
+            if (inputManager != null)
+            {
+                inputManager.EscEvent += OnEscPressed;
+            }
+        }
         myAnimator = GetComponent<Animator>();      // get reference to this objects Animator
     }
 	

@@ -106,8 +106,26 @@ public class PlayerController : MonoBehaviour
         HandleMovement();
     }
 
+    private void OnDisable()
+    {
+        if (animator != null)
+        {
+            animator.SetFloat(ParamSpeedF, 0f);
+        }
+    }
+
     private void HandleMovement()
     {
+        // Kunci input jika sedang kuis atau transisi portal
+        if (!InputManager.bCanPlayerMove)
+        {
+            if (animator != null)
+            {
+                animator.SetFloat(ParamSpeedF, 0f);
+            }
+            return;
+        }
+
         // 1. Read input axes (with direct KeyCode fallback for 100% responsiveness)
         float horizontal = Input.GetAxisRaw("Horizontal");
         float vertical = Input.GetAxisRaw("Vertical");
