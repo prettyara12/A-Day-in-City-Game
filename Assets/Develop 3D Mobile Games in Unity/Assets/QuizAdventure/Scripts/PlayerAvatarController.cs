@@ -33,7 +33,10 @@ public class PlayerAvatarController : MonoBehaviour {
     }
     public void OnEscPressed(object source, EventArgs e)     //when the Esc key event is fired
     {
-        objectMotor.MoveObjectTo(transform.position);        //set our desired location on the NavMesh to the current location of the Player (a redundant call to make sure we stop moving)
+        if (objectMotor != null)
+        {
+            objectMotor.MoveObjectTo(transform.position);        //set our desired location on the NavMesh to the current location of the Player (a redundant call to make sure we stop moving)
+        }
     }
 
     public void OnClickDown(object source, EventArgs e)    //when the LeftMouseButton pressed event is fired
@@ -42,12 +45,14 @@ public class PlayerAvatarController : MonoBehaviour {
         
         if (et.IsPointerOverGameObject() || et.IsPointerOverGameObject(Input.GetTouch(0).fingerId)) return;
         if (et.currentSelectedGameObject != null) return;*/
+        if (mainCam == null) mainCam = Camera.main;
+        if (mainCam == null || objectMotor == null) return;
+
         RaycastHit hit;                                                    // store the Raycast hit
         Ray ray = mainCam.ScreenPointToRay(Input.mousePosition);           //cast a ray from the MainCamera through the click position 
         
         if(Physics.Raycast(ray, out hit, Mathf.Infinity, walkableMask))    //cast a ray using the LayerMask
         {
-            
             objectMotor.MoveObjectTo(hit.point);                          //tell the objectMotor on this object the location of the click and start moving there
         }
         
@@ -55,10 +60,10 @@ public class PlayerAvatarController : MonoBehaviour {
 
     private void OnTriggerEnter(Collider other)
     {
-        if(other.gameObject.tag == "NPC" || other.gameObject.tag == "POI")  //if we have crossed a trigger collider belonging to a NPC or POI
+        if(other != null && (other.gameObject.tag == "NPC" || other.gameObject.tag == "POI"))  //if we have crossed a trigger collider belonging to a NPC or POI
         {
-            objectMotor.Stop();                                             //tell the objectMotor to stop all movement
-            transform.LookAt(other.transform);                              //rotate the player to face the NPC or POI
+            if (objectMotor != null) objectMotor.Stop();                                             //tell the objectMotor to stop all movement
+            if (other.transform != null) transform.LookAt(other.transform);                              //rotate the player to face the NPC or POI
             StartCoroutine(PauseCharacter());                               //start pausing the players movement so they have some time to read the info from the NPC or POI
         }
     }

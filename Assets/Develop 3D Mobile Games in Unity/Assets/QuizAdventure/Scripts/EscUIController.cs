@@ -28,13 +28,13 @@ public class EscUIController : MonoBehaviour {
     public void OnEscPressed(object source, EventArgs e)
     {
         DisablePlayerMovement();
-        myAnimator.SetTrigger("FadeIn");
+        if (myAnimator != null) myAnimator.SetTrigger("FadeIn");
     }
 
     /*Plays a fade to black animation for the Fade Panel*/
     public void QuitGameFade()
     {
-        myAnimator.SetTrigger("FadeQuit");
+        if (myAnimator != null) myAnimator.SetTrigger("FadeQuit");
     }
 
     /*Exits the application*/
@@ -47,7 +47,7 @@ public class EscUIController : MonoBehaviour {
     /*Plays a fade to black animation for the Fade Panel*/
     public void ReturnToGame()
     {
-        myAnimator.SetTrigger("FadeOut");
+        if (myAnimator != null) myAnimator.SetTrigger("FadeOut");
     }
 
     /*Used to turn on player movement after cutscenes or when pause screen is inactive*/

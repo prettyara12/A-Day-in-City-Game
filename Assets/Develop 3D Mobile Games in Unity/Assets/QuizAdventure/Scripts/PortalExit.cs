@@ -40,7 +40,7 @@ public class PortalExit : MonoBehaviour {
             if (anim != null) return anim;
         }
 
-        Animator[] anims = FindObjectsByType<Animator>(FindObjectsInactive.Include, FindObjectsSortMode.None);
+        Animator[] anims = FindObjectsByType<Animator>(FindObjectsInactive.Include);
         foreach (var anim in anims)
         {
             if (anim.gameObject.name.Contains("Fade"))

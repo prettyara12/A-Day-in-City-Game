@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections;
 using UnityEngine;
 using UnityEngine.UI;
@@ -33,9 +33,12 @@ public class PointOfInterest : MonoBehaviour {
 
     private void Start()
     {
-        pOICanvas.GetComponentInChildren<Text>().text = flavorText;
-        pOICanvas.enabled = false; //Disable the UI so it is not displayed before the Player finds and triggers it.
-
+        if (pOICanvas != null)
+        {
+            var txt = pOICanvas.GetComponentInChildren<Text>();
+            if (txt != null) txt.text = flavorText;
+            pOICanvas.enabled = false; //Disable the UI so it is not displayed before the Player finds and triggers it.
+        }
     }
 
     // ******** This method will disable the Players ability to click to move for a set time when the UI is fist displayed ********
@@ -49,22 +52,20 @@ public class PointOfInterest : MonoBehaviour {
     //******** This method is called when another object intersects this objects trigger collider ************
     private void OnTriggerEnter(Collider other)
     {
-        
-        if(other.gameObject.tag == "Player")  //check if the colliding object is the player
+        if(other != null && other.gameObject.tag == "Player")  //check if the colliding object is the player
         {
             StartCoroutine(PauseForText());   // pause the player control so they can read the text
-            pOICanvas.enabled = true;         // turn on the POI canvas to display the text
+            if (pOICanvas != null) pOICanvas.enabled = true;         // turn on the POI canvas to display the text
             OnUITriggered();                  // let any listeners know the UI was triggered
         }
-        
     }
 
     // ******* This method is called when an object leaves this objects trigger collider ********
     private void OnTriggerExit(Collider other)
     {
-        if (other.gameObject.tag == "Player")  //check if the colliding object is the player
+        if (other != null && other.gameObject.tag == "Player")  //check if the colliding object is the player
         {
-            pOICanvas.enabled = false;        //turn off the POI canvas
+            if (pOICanvas != null) pOICanvas.enabled = false;        //turn off the POI canvas
         }
     }
 

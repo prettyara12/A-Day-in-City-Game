@@ -21,51 +21,6 @@ public static class PlayerBootstrap
     }
 
 #if UNITY_EDITOR
-    [InitializeOnLoadMethod]
-    public static void EditorAutoDumpScene()
-    {
-        EditorApplication.delayCall += () =>
-        {
-            try
-            {
-                GameObject playerGo = EnsurePlayerCharacter();
-                if (playerGo != null)
-                {
-                    SetupAllNPCs(playerGo);
-                }
-
-                var sb = new System.Text.StringBuilder();
-                sb.AppendLine("=== DUMP SCENE CHARACTERS ===");
-                var allGo = Object.FindObjectsByType<GameObject>(FindObjectsInactive.Include);
-                foreach (var go in allGo)
-                {
-                    if (go.GetComponent<Animator>() != null || 
-                        go.name.Contains("People") || go.name.Contains("Citizen") || 
-                        go.name.Contains("NPC") || go.name.Contains("Woman") || 
-                        go.name.Contains("Man") || go.name.Contains("Girl") || 
-                        go.name.Contains("Female") || go.name.Contains("Duduk") ||
-                        go.name.Contains("Bench") || go.name.Contains("Chair"))
-                    {
-                        sb.AppendLine($"GO: {go.name} | Tag: {go.tag} | Parent: {go.transform.parent?.name} | Pos: {go.transform.position.ToString("F3")} | Rot: {go.transform.eulerAngles.ToString("F1")} | Scale: {go.transform.localScale.ToString("F3")}");
-                        foreach (var comp in go.GetComponents<Component>())
-                        {
-                            if (comp != null) sb.AppendLine($"   Component: {comp.GetType().Name}");
-                        }
-                    }
-                }
-                string scratchDir = @"C:\Users\Asus\.gemini\antigravity-ide\brain\4b52fae9-8fd5-450a-967a-ffa52e0de8cf\scratch";
-                if (System.IO.Directory.Exists(scratchDir))
-                {
-                    System.IO.File.WriteAllText(System.IO.Path.Combine(scratchDir, "scene_characters.txt"), sb.ToString());
-                }
-            }
-            catch (System.Exception ex)
-            {
-                Debug.LogError("[EditorAutoDumpScene] Error: " + ex);
-            }
-        };
-    }
-
     [MenuItem("Tools/⭐ Setup Game (1 Player WASD + Minimal 2 NPC)", false, 1)]
     public static void MenuSetupGameProject()
     {
@@ -245,7 +200,17 @@ public static class PlayerBootstrap
         // 8. Setup Quizmaster Steve & ExitPortal Transisi Level (Modul 7)
         EnsureSteveAndPortal();
 
-        Debug.Log("[PlayerBootstrap] Berhasil mengonfigurasi 1 Player (WASD), NPC Mandiri, serta Quizmaster Steve & Portal Transition!");
+        // 9. Setup 2 Mobil Manual Buatan Pengguna agar Berjalan di Jalan Kota
+        try
+        {
+            CityCarManager.SetupUserManualCars();
+        }
+        catch (System.Exception ex)
+        {
+            Debug.LogWarning($"[PlayerBootstrap] Peringatan saat setup mobil manual: {ex.Message}");
+        }
+
+        Debug.Log("[PlayerBootstrap] Berhasil mengonfigurasi 1 Player (WASD), NPC Mandiri, Quizmaster Steve & Portal Transition, serta 2 Mobil Manual Berjalan!");
     }
 
     /// <summary>
@@ -1482,6 +1447,12 @@ public static class PlayerBootstrap
     private static void DestroyGameObjectSafe(GameObject go)
     {
         if (go == null) return;
+#if UNITY_EDITOR
+        if (Selection.activeGameObject == go || (Selection.activeTransform != null && Selection.activeTransform.IsChildOf(go.transform)))
+        {
+            Selection.activeObject = null;
+        }
+#endif
         if (!Application.isPlaying)
         {
 #if UNITY_EDITOR
@@ -1670,7 +1641,7 @@ public static class PlayerBootstrap
 
         if (fadePanelGo == null)
         {
-            Animator[] anims = Object.FindObjectsByType<Animator>(FindObjectsInactive.Include, FindObjectsSortMode.None);
+            Animator[] anims = Object.FindObjectsByType<Animator>(FindObjectsInactive.Include);
             foreach (var anim in anims)
             {
                 if (anim.gameObject.name.Contains("Fade"))
