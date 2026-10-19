@@ -21,14 +21,70 @@ public static class PlayerBootstrap
     }
 
 #if UNITY_EDITOR
+    [InitializeOnLoadMethod]
+    public static void SyncBuildSettingsOnLoad()
+    {
+        EnsureAllScenesInBuild();
+    }
+
+    public static void EnsureAllScenesInBuild()
+    {
+        var scenes = new System.Collections.Generic.List<EditorBuildSettingsScene>(EditorBuildSettings.scenes);
+        string[] subScenePaths = new string[]
+        {
+            "Assets/Scenes/SubScenes/SubScene_0_0.unity",
+            "Assets/Scenes/SubScenes/SubScene_0_1.unity",
+            "Assets/Scenes/SubScenes/SubScene_0_2.unity",
+            "Assets/Scenes/SubScenes/SubScene_1_0.unity",
+            "Assets/Scenes/SubScenes/SubScene_1_1.unity",
+            "Assets/Scenes/SubScenes/SubScene_1_2.unity",
+            "Assets/Scenes/SubScenes/SubScene_2_0.unity",
+            "Assets/Scenes/SubScenes/SubScene_2_1.unity",
+            "Assets/Scenes/SubScenes/SubScene_2_2.unity",
+        };
+
+        bool modified = false;
+        foreach (var path in subScenePaths)
+        {
+            GUID guid = AssetDatabase.GUIDFromAssetPath(path);
+            int idx = scenes.FindIndex(s => s.path == path);
+            if (idx < 0)
+            {
+                scenes.Add(new EditorBuildSettingsScene(path, true));
+                modified = true;
+            }
+            else if (scenes[idx].guid != guid || !scenes[idx].enabled)
+            {
+                scenes[idx] = new EditorBuildSettingsScene(path, true);
+                modified = true;
+            }
+        }
+
+        if (modified)
+        {
+            EditorBuildSettings.scenes = scenes.ToArray();
+            AssetDatabase.SaveAssets();
+            Debug.Log("[PlayerBootstrap] EditorBuildSettings.scenes berhasil disinkronkan untuk seluruh 9 SubScenes!");
+        }
+    }
+
+    private static void MarkSceneDirtySafe()
+    {
+        if (!Application.isPlaying)
+        {
+            var activeScene = UnityEditor.SceneManagement.EditorSceneManager.GetActiveScene();
+            if (activeScene.IsValid())
+            {
+                UnityEditor.SceneManagement.EditorSceneManager.MarkSceneDirty(activeScene);
+            }
+        }
+    }
+
     [MenuItem("Tools/⭐ Setup Game (1 Player WASD + Minimal 2 NPC)", false, 1)]
     public static void MenuSetupGameProject()
     {
         SetupGameProject();
-
-        UnityEditor.SceneManagement.EditorSceneManager.MarkSceneDirty(
-            UnityEditor.SceneManagement.EditorSceneManager.GetActiveScene()
-        );
+        MarkSceneDirtySafe();
 
         EditorUtility.DisplayDialog("Setup Proyek Selesai!",
             "Proyek game kota berhasil dikonfigurasi sesuai spesifikasi:\n\n" +
@@ -55,9 +111,7 @@ public static class PlayerBootstrap
         GameObject playerGo = EnsurePlayerCharacter();
         EnsureBarberShopNPC(playerGo);
 
-        UnityEditor.SceneManagement.EditorSceneManager.MarkSceneDirty(
-            UnityEditor.SceneManagement.EditorSceneManager.GetActiveScene()
-        );
+        MarkSceneDirtySafe();
 
         EditorUtility.DisplayDialog("Setup NPC Barber Shop Selesai!",
             "Karakter NPC di depan Barber Shop berhasil dikonfigurasi:\n\n" +
@@ -77,9 +131,7 @@ public static class PlayerBootstrap
         SetupAllNPCs(playerGo);
         EnsureSteveAndPortal();
 
-        UnityEditor.SceneManagement.EditorSceneManager.MarkSceneDirty(
-            UnityEditor.SceneManagement.EditorSceneManager.GetActiveScene()
-        );
+        MarkSceneDirtySafe();
 
         EditorUtility.DisplayDialog("Setup Steve & Portal Selesai!",
             "Quizmaster Steve dan ExitPortal berhasil dikonfigurasi:\n\n" +
@@ -102,9 +154,7 @@ public static class PlayerBootstrap
         GameObject playerGo = EnsurePlayerCharacter();
         SetupAllNPCs(playerGo);
 
-        UnityEditor.SceneManagement.EditorSceneManager.MarkSceneDirty(
-            UnityEditor.SceneManagement.EditorSceneManager.GetActiveScene()
-        );
+        MarkSceneDirtySafe();
 
         EditorUtility.DisplayDialog("Setup 2 NPC Berhasil!",
             "Dua NPC mandiri berhasil disiapkan:\n\n" +
@@ -125,9 +175,13 @@ public static class PlayerBootstrap
             SetupCamera(playerGo);
             EnsureEnvironmentColliders();
 
-            UnityEditor.SceneManagement.EditorSceneManager.MarkSceneDirty(
-                UnityEditor.SceneManagement.EditorSceneManager.GetActiveScene()
-            );
+            if (Application.isPlaying)
+            {
+                SubSceneLoader loader = Object.FindAnyObjectByType<SubSceneLoader>();
+                if (loader != null) loader.ForceUpdatePosition();
+            }
+
+            MarkSceneDirtySafe();
 
             EditorUtility.DisplayDialog("Player di Area Pertokoan!",
                 "Player berhasil diposisikan di Area Pertokoan (Shopping Street)!\n\n" +
@@ -142,14 +196,106 @@ public static class PlayerBootstrap
     public static void MenuRemoveGiantNPCs()
     {
         int deleted = RemoveGiantNPCs();
-        UnityEditor.SceneManagement.EditorSceneManager.MarkSceneDirty(
-            UnityEditor.SceneManagement.EditorSceneManager.GetActiveScene()
-        );
+        MarkSceneDirtySafe();
         EditorUtility.DisplayDialog("NPC Raksasa Dihapus!",
             deleted > 0 
                 ? $"Berhasil menghapus {deleted} karakter raksasa dari kota!"
                 : "Semua karakter sudah berukuran proporsional (skala 0.1).",
             "OK");
+    }
+
+    [MenuItem("Tools/🌐 Setup Multi-Scene Manager (Modul 6)", false, 5)]
+    public static void MenuSetupSubSceneManager()
+    {
+        EnsureAllScenesInBuild();
+        GameObject playerGo = EnsurePlayerCharacter();
+        EnsureSubSceneManager(playerGo);
+
+        MarkSceneDirtySafe();
+
+        EditorUtility.DisplayDialog("Setup Multi-Scene Manager Berhasil!",
+            "Sistem Managing Multiple Scenes (Modul 6) berhasil dikonfigurasi:\n\n" +
+            "1. SUB-SCENE LOADER: Terpasang pada GameObject 'SubSceneManager'.\n" +
+            "2. SUB-SCENES: 4 Sub-scenes (SubScene_0_0 s/d SubScene_1_1) dalam grid 2x2.\n" +
+            "3. SCRIPTABLE OBJECTS: SubSceneData dengan properti Color & Player Shape (Challenge).\n" +
+            "4. ADDITIVE STREAMING: Sub-scene otomatis dimuat/dilepas saat Player mendekat/menjauh.\n\n" +
+            "Gunakan menu 'Tools/🚀 Teleport ke Grid Multi-Scene' untuk mencoba langsung di area sub-scene!",
+            "OK");
+    }
+
+    [MenuItem("Tools/🚀 Teleport ke Grid Multi-Scene (Modul 6 Test Area)", false, 6)]
+    public static void MenuTeleportToSubSceneGrid()
+    {
+        EnsureAllScenesInBuild();
+        GameObject playerGo = EnsurePlayerCharacter();
+        if (playerGo != null)
+        {
+            EnsureSubSceneManager(playerGo);
+            playerGo.transform.position = new Vector3(0f, 0.2f, 0f);
+            playerGo.transform.rotation = Quaternion.identity;
+
+            // Atur kamera dengan sudut elevated / luas agar streaming kotak terlihat jelas
+            Camera cam = Camera.main;
+            if (cam == null) cam = Object.FindAnyObjectByType<Camera>();
+            if (cam != null)
+            {
+                ThirdPersonCamera tpc = cam.GetComponent<ThirdPersonCamera>();
+                if (tpc == null) tpc = cam.gameObject.AddComponent<ThirdPersonCamera>();
+                tpc.viewMode = ThirdPersonCamera.CameraViewMode.ThirdPersonFollow;
+                tpc.target = playerGo.transform;
+                tpc.targetHeight = 0.18f;
+                tpc.distance = 3.5f;
+                tpc.height = 2.5f;
+                tpc.followSpeed = 10f;
+                tpc.rotationFollowSpeed = 6f;
+                tpc.showControlsUI = false;
+                tpc.SnapToTarget();
+            }
+
+            if (!Application.isPlaying)
+            {
+                // Buka SubScene_0_0 secara aditif di editor agar platform langsung terlihat di Scene view
+                bool alreadyOpen = false;
+                for (int i = 0; i < UnityEngine.SceneManagement.SceneManager.sceneCount; i++)
+                {
+                    if (UnityEngine.SceneManagement.SceneManager.GetSceneAt(i).name == "SubScene_0_0")
+                    {
+                        alreadyOpen = true;
+                        break;
+                    }
+                }
+                if (!alreadyOpen)
+                {
+                    UnityEditor.SceneManagement.EditorSceneManager.OpenScene(
+                        "Assets/Scenes/SubScenes/SubScene_0_0.unity",
+                        UnityEditor.SceneManagement.OpenSceneMode.Additive
+                    );
+                }
+            }
+            else
+            {
+                SubSceneLoader loader = Object.FindAnyObjectByType<SubSceneLoader>();
+                if (loader != null) loader.ForceUpdatePosition();
+            }
+
+            MarkSceneDirtySafe();
+            if (!Application.isPlaying)
+            {
+                var activeScene = UnityEditor.SceneManagement.EditorSceneManager.GetActiveScene();
+                if (activeScene.IsValid())
+                {
+                    UnityEditor.SceneManagement.EditorSceneManager.SaveScene(activeScene);
+                }
+            }
+
+            EditorUtility.DisplayDialog("Teleport ke Grid Multi-Scene Berhasil!",
+                "Player dipindahkan ke kotak SubScene_0_0 (0, 0.2, 0) pada Grid 3x3 (Ukuran Kotak 1.5 x 1.5):\n\n" +
+                "• Kotak Baru Muncul: Saat Player melangkah ke kotak warna lain, platform di depan otomatis dimuat (load) dan terlihat.\n" +
+                "• Kotak Lama Terlepas: Platform di belakang otomatis dilepas (unload) saat Player menjauh.\n" +
+                "• Karakter Player: Tampilan dan warna Player tetap normal (tidak berubah warna).\n\n" +
+                "Silakan berjalan untuk melihat kotak-kotak baru bermunculan secara dinamis!",
+                "OK");
+        }
     }
 #endif
 
@@ -210,7 +356,17 @@ public static class PlayerBootstrap
             Debug.LogWarning($"[PlayerBootstrap] Peringatan saat setup mobil manual: {ex.Message}");
         }
 
-        Debug.Log("[PlayerBootstrap] Berhasil mengonfigurasi 1 Player (WASD), NPC Mandiri, Quizmaster Steve & Portal Transition, serta 2 Mobil Manual Berjalan!");
+        // 10. Setup Multi-Scene Manager (Modul 6)
+        try
+        {
+            EnsureSubSceneManager(playerGo);
+        }
+        catch (System.Exception ex)
+        {
+            Debug.LogWarning($"[PlayerBootstrap] Peringatan saat setup SubSceneManager: {ex.Message}");
+        }
+
+        Debug.Log("[PlayerBootstrap] Berhasil mengonfigurasi 1 Player (WASD), NPC Mandiri, Quizmaster Steve & Portal Transition, 2 Mobil Manual Berjalan, dan Multi-Scene Manager (Modul 6)!");
     }
 
     /// <summary>
@@ -1701,4 +1857,78 @@ public static class PlayerBootstrap
             }
         }
     }
+
+    /// <summary>
+    /// Menyiapkan SubSceneManager dengan komponen SubSceneLoader untuk modul 6.
+    /// </summary>
+    public static GameObject EnsureSubSceneManager(GameObject playerGo = null)
+    {
+        GameObject managerGo = GameObject.Find("SubSceneManager");
+        if (managerGo == null)
+        {
+            managerGo = new GameObject("SubSceneManager");
+        }
+
+        SubSceneLoader loader = managerGo.GetComponent<SubSceneLoader>();
+        if (loader == null) loader = managerGo.AddComponent<SubSceneLoader>();
+
+        if (playerGo != null) loader.player = playerGo.transform;
+        loader.numberOfColumns = 3;
+        loader.numberOfRows = 3;
+        loader.loadRadius = 1;
+        loader.tickTime = 0.1f;
+        loader.baseSceneName = UnityEngine.SceneManagement.SceneManager.GetActiveScene().name;
+        loader.EnsureConfigured();
+
+#if UNITY_EDITOR
+        if (!Application.isPlaying)
+        {
+            SerializedObject so = new SerializedObject(loader);
+            SerializedProperty playerProp = so.FindProperty("player");
+            if (playerGo != null && playerProp != null)
+            {
+                playerProp.objectReferenceValue = playerGo.transform;
+            }
+
+            SerializedProperty subScenesProp = so.FindProperty("subScenes");
+            string[] guids = AssetDatabase.FindAssets("t:SubSceneData", new[] { "Assets/ScriptableObjects/SubScenes", "Assets/Resources/SubScenes" });
+            if (guids != null && guids.Length > 0 && subScenesProp != null)
+            {
+                var list = new System.Collections.Generic.List<SubSceneData>();
+                foreach (var g in guids)
+                {
+                    string path = AssetDatabase.GUIDToAssetPath(g);
+                    SubSceneData data = AssetDatabase.LoadAssetAtPath<SubSceneData>(path);
+                    if (data != null && !list.Exists(x => x.sceneName == data.sceneName)) list.Add(data);
+                }
+                list.Sort((a, b) => string.Compare(a.sceneName, b.sceneName, System.StringComparison.Ordinal));
+                subScenesProp.arraySize = list.Count;
+                for (int i = 0; i < list.Count; i++)
+                {
+                    subScenesProp.GetArrayElementAtIndex(i).objectReferenceValue = list[i];
+                }
+            }
+
+            SerializedProperty baseSceneProp = so.FindProperty("baseSceneName");
+            if (baseSceneProp != null)
+            {
+                baseSceneProp.stringValue = UnityEngine.SceneManagement.SceneManager.GetActiveScene().name;
+            }
+
+            SerializedProperty colsProp = so.FindProperty("numberOfColumns");
+            if (colsProp != null) colsProp.intValue = 3;
+            SerializedProperty rowsProp = so.FindProperty("numberOfRows");
+            if (rowsProp != null) rowsProp.intValue = 3;
+            SerializedProperty radiusProp = so.FindProperty("loadRadius");
+            if (radiusProp != null) radiusProp.intValue = 1;
+            SerializedProperty tickProp = so.FindProperty("tickTime");
+            if (tickProp != null) tickProp.floatValue = 0.1f;
+
+            so.ApplyModifiedProperties();
+            EditorUtility.SetDirty(managerGo);
+        }
+#endif
+        return managerGo;
+    }
 }
+

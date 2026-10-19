@@ -8,6 +8,18 @@ using System.Collections.Generic;
 /// </summary>
 public class NPCSetupWizard : EditorWindow
 {
+    private static void MarkSceneDirtySafe()
+    {
+        if (!Application.isPlaying)
+        {
+            var activeScene = UnityEditor.SceneManagement.EditorSceneManager.GetActiveScene();
+            if (activeScene.IsValid())
+            {
+                UnityEditor.SceneManagement.EditorSceneManager.MarkSceneDirty(activeScene);
+            }
+        }
+    }
+
     /// <summary>
     /// Align Main Camera to the current Scene View angle (like Ctrl+Shift+F).
     /// </summary>
@@ -32,9 +44,7 @@ public class NPCSetupWizard : EditorWindow
         cam.transform.rotation = SceneView.lastActiveSceneView.camera.transform.rotation;
 
         EditorUtility.SetDirty(cam);
-        UnityEditor.SceneManagement.EditorSceneManager.MarkSceneDirty(
-            UnityEditor.SceneManagement.EditorSceneManager.GetActiveScene()
-        );
+        MarkSceneDirtySafe();
 
         Debug.Log($"[NPCSetup] Main Camera berhasil disamakan dengan Scene View! Posisi: {cam.transform.position}, Rotasi: {cam.transform.eulerAngles}");
 
@@ -290,9 +300,7 @@ public class NPCSetupWizard : EditorWindow
             Camera.main.transform.rotation = SceneView.lastActiveSceneView.camera.transform.rotation;
         }
 
-        UnityEditor.SceneManagement.EditorSceneManager.MarkSceneDirty(
-            UnityEditor.SceneManagement.EditorSceneManager.GetActiveScene()
-        );
+        MarkSceneDirtySafe();
 
         Debug.Log("=== NPC Setup Selesai! 8 NPC dibuat dengan skala 0.1 di sepanjang jalan. ===");
 
@@ -371,9 +379,7 @@ public class NPCSetupWizard : EditorWindow
         walker.endBehavior = NPCWalker.EndBehavior.PingPong;
 
         EditorUtility.SetDirty(selected);
-        UnityEditor.SceneManagement.EditorSceneManager.MarkSceneDirty(
-            UnityEditor.SceneManagement.EditorSceneManager.GetActiveScene()
-        );
+        MarkSceneDirtySafe();
 
         EditorUtility.DisplayDialog("Karakter Berhasil Diaktifkan!",
             $"Karakter '{selected.name}' sekarang sudah:\n\n" +
@@ -507,9 +513,7 @@ public class NPCSetupWizard : EditorWindow
         }
 
         EditorUtility.SetDirty(player);
-        UnityEditor.SceneManagement.EditorSceneManager.MarkSceneDirty(
-            UnityEditor.SceneManagement.EditorSceneManager.GetActiveScene()
-        );
+        MarkSceneDirtySafe();
 
         Selection.activeGameObject = player;
 

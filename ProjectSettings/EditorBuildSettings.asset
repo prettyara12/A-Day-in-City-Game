@@ -11,5 +11,35 @@ EditorBuildSettings:
   - enabled: 1
     path: Assets/Develop 3D Mobile Games in Unity/Assets/QuizAdventure/Scenes/Level1Final.unity
     guid: b1cbb7cdbde8f0b4d9d51a27eb5bce2d
+  - enabled: 1
+    path: Assets/Scenes/SubScenes/SubScene_0_0.unity
+    guid: a11a0001000200030004000500060011
+  - enabled: 1
+    path: Assets/Scenes/SubScenes/SubScene_0_1.unity
+    guid: a11a0001000200030004000500060012
+  - enabled: 1
+    path: Assets/Scenes/SubScenes/SubScene_0_2.unity
+    guid: 08b2d739e7b82f4459534cd96bc6e21b
+  - enabled: 1
+    path: Assets/Scenes/SubScenes/SubScene_1_0.unity
+    guid: a11a0001000200030004000500060013
+  - enabled: 1
+    path: Assets/Scenes/SubScenes/SubScene_1_1.unity
+    guid: a11a0001000200030004000500060014
+  - enabled: 1
+    path: Assets/Scenes/SubScenes/SubScene_1_2.unity
+    guid: a11a0001000200030004000500060022
+  - enabled: 1
+    path: Assets/Scenes/SubScenes/SubScene_2_0.unity
+    guid: a11a0001000200030004000500060023
+  - enabled: 1
+    path: Assets/Scenes/SubScenes/SubScene_2_1.unity
+    guid: a11a0001000200030004000500060024
+  - enabled: 1
+    path: Assets/Scenes/SubScenes/SubScene_2_2.unity
+    guid: a11a0001000200030004000500060025
+  - enabled: 1
+    path: Assets/Scenes/Module6_Demo.unity
+    guid: a11a0001000200030004000500060015
   m_configObjects:
     com.unity.input.settings.actions: {fileID: -944628639613478452, guid: 052faaac586de48259a63d0c4782560b, type: 3}
