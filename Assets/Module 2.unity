@@ -3606,8 +3606,8 @@ Light:
   serializedVersion: 13
   m_Type: 2
   m_Color: {r: 1, g: 0.957, b: 0.839, a: 1}
-  m_Intensity: 0.5
-  m_Range: 1
+  m_Intensity: 1
+  m_Range: 2
   m_SpotAngle: 80
   m_InnerSpotAngle: 10
   m_CookieSize2D: {x: 0.5, y: 0.5}
@@ -3886,8 +3886,8 @@ Light:
   serializedVersion: 13
   m_Type: 2
   m_Color: {r: 1, g: 0.957, b: 0.839, a: 1}
-  m_Intensity: 0.5
-  m_Range: 1
+  m_Intensity: 1
+  m_Range: 2
   m_SpotAngle: 80
   m_InnerSpotAngle: 10
   m_CookieSize2D: {x: 0.5, y: 0.5}
@@ -6747,8 +6747,8 @@ Light:
   serializedVersion: 13
   m_Type: 2
   m_Color: {r: 1, g: 0.957, b: 0.839, a: 1}
-  m_Intensity: 0.5
-  m_Range: 1
+  m_Intensity: 1
+  m_Range: 2
   m_SpotAngle: 80
   m_InnerSpotAngle: 10
   m_CookieSize2D: {x: 0.5, y: 0.5}
@@ -12042,8 +12042,8 @@ Light:
   serializedVersion: 13
   m_Type: 2
   m_Color: {r: 1, g: 0.957, b: 0.839, a: 1}
-  m_Intensity: 0.5
-  m_Range: 1
+  m_Intensity: 1
+  m_Range: 2
   m_SpotAngle: 80
   m_InnerSpotAngle: 10
   m_CookieSize2D: {x: 0.5, y: 0.5}
@@ -12469,8 +12469,8 @@ Light:
   serializedVersion: 13
   m_Type: 2
   m_Color: {r: 1, g: 0.957, b: 0.839, a: 1}
-  m_Intensity: 0.5
-  m_Range: 1
+  m_Intensity: 1
+  m_Range: 2
   m_SpotAngle: 80
   m_InnerSpotAngle: 10
   m_CookieSize2D: {x: 0.5, y: 0.5}
@@ -12749,8 +12749,8 @@ Light:
   serializedVersion: 13
   m_Type: 2
   m_Color: {r: 1, g: 0.957, b: 0.839, a: 1}
-  m_Intensity: 0.5
-  m_Range: 1
+  m_Intensity: 1
+  m_Range: 2
   m_SpotAngle: 80
   m_InnerSpotAngle: 10
   m_CookieSize2D: {x: 0.5, y: 0.5}
@@ -21992,8 +21992,8 @@ Light:
   serializedVersion: 13
   m_Type: 2
   m_Color: {r: 1, g: 0.957, b: 0.839, a: 1}
-  m_Intensity: 0.5
-  m_Range: 1
+  m_Intensity: 1
+  m_Range: 2
   m_SpotAngle: 80
   m_InnerSpotAngle: 10
   m_CookieSize2D: {x: 0.5, y: 0.5}
@@ -26948,8 +26948,8 @@ Light:
   serializedVersion: 13
   m_Type: 2
   m_Color: {r: 1, g: 0.957, b: 0.839, a: 1}
-  m_Intensity: 0.5
-  m_Range: 1
+  m_Intensity: 1
+  m_Range: 2
   m_SpotAngle: 80
   m_InnerSpotAngle: 10
   m_CookieSize2D: {x: 0.5, y: 0.5}
@@ -30129,8 +30129,8 @@ Light:
   serializedVersion: 13
   m_Type: 2
   m_Color: {r: 1, g: 0.957, b: 0.839, a: 1}
-  m_Intensity: 0.5
-  m_Range: 1
+  m_Intensity: 1
+  m_Range: 2
   m_SpotAngle: 80
   m_InnerSpotAngle: 10
   m_CookieSize2D: {x: 0.5, y: 0.5}
@@ -38402,8 +38402,8 @@ Light:
   serializedVersion: 13
   m_Type: 2
   m_Color: {r: 1, g: 0.957, b: 0.839, a: 1}
-  m_Intensity: 0.5
-  m_Range: 1
+  m_Intensity: 1
+  m_Range: 2
   m_SpotAngle: 80
   m_InnerSpotAngle: 10
   m_CookieSize2D: {x: 0.5, y: 0.5}
@@ -41752,8 +41752,8 @@ Light:
   serializedVersion: 13
   m_Type: 2
   m_Color: {r: 1, g: 0.957, b: 0.839, a: 1}
-  m_Intensity: 0.5
-  m_Range: 1
+  m_Intensity: 1
+  m_Range: 2
   m_SpotAngle: 80
   m_InnerSpotAngle: 10
   m_CookieSize2D: {x: 0.5, y: 0.5}
@@ -45731,8 +45731,8 @@ Light:
   serializedVersion: 13
   m_Type: 2
   m_Color: {r: 1, g: 0.957, b: 0.839, a: 1}
-  m_Intensity: 0.5
-  m_Range: 1
+  m_Intensity: 1
+  m_Range: 2
   m_SpotAngle: 80
   m_InnerSpotAngle: 10
   m_CookieSize2D: {x: 0.5, y: 0.5}
@@ -47519,8 +47519,8 @@ Light:
   serializedVersion: 13
   m_Type: 2
   m_Color: {r: 1, g: 0.957, b: 0.839, a: 1}
-  m_Intensity: 0.5
-  m_Range: 1
+  m_Intensity: 1
+  m_Range: 2
   m_SpotAngle: 80
   m_InnerSpotAngle: 10
   m_CookieSize2D: {x: 0.5, y: 0.5}
@@ -48808,8 +48808,8 @@ Light:
   serializedVersion: 13
   m_Type: 2
   m_Color: {r: 1, g: 0.957, b: 0.839, a: 1}
-  m_Intensity: 0.5
-  m_Range: 1
+  m_Intensity: 1
+  m_Range: 2
   m_SpotAngle: 80
   m_InnerSpotAngle: 10
   m_CookieSize2D: {x: 0.5, y: 0.5}
@@ -53577,8 +53577,8 @@ Light:
   serializedVersion: 13
   m_Type: 2
   m_Color: {r: 1, g: 0.957, b: 0.839, a: 1}
-  m_Intensity: 0.5
-  m_Range: 1
+  m_Intensity: 1
+  m_Range: 2
   m_SpotAngle: 80
   m_InnerSpotAngle: 10
   m_CookieSize2D: {x: 0.5, y: 0.5}
@@ -55878,7 +55878,7 @@ Light:
   serializedVersion: 13
   m_Type: 0
   m_Color: {r: 1, g: 0.957, b: 0.839, a: 1}
-  m_Intensity: 5
+  m_Intensity: 1
   m_Range: 2
   m_SpotAngle: 60
   m_InnerSpotAngle: 15
@@ -56988,8 +56988,8 @@ Light:
   serializedVersion: 13
   m_Type: 2
   m_Color: {r: 1, g: 0.957, b: 0.839, a: 1}
-  m_Intensity: 0.5
-  m_Range: 1
+  m_Intensity: 1
+  m_Range: 2
   m_SpotAngle: 80
   m_InnerSpotAngle: 10
   m_CookieSize2D: {x: 0.5, y: 0.5}
@@ -60837,8 +60837,8 @@ Light:
   serializedVersion: 13
   m_Type: 2
   m_Color: {r: 1, g: 0.957, b: 0.839, a: 1}
-  m_Intensity: 0.5
-  m_Range: 1
+  m_Intensity: 1
+  m_Range: 2
   m_SpotAngle: 80
   m_InnerSpotAngle: 10
   m_CookieSize2D: {x: 0.5, y: 0.5}
@@ -61186,8 +61186,8 @@ Light:
   serializedVersion: 13
   m_Type: 2
   m_Color: {r: 1, g: 0.957, b: 0.839, a: 1}
-  m_Intensity: 0.5
-  m_Range: 1
+  m_Intensity: 1
+  m_Range: 2
   m_SpotAngle: 80
   m_InnerSpotAngle: 10
   m_CookieSize2D: {x: 0.5, y: 0.5}
@@ -63629,8 +63629,8 @@ Light:
   serializedVersion: 13
   m_Type: 2
   m_Color: {r: 1, g: 0.957, b: 0.839, a: 1}
-  m_Intensity: 0.5
-  m_Range: 1
+  m_Intensity: 1
+  m_Range: 2
   m_SpotAngle: 80
   m_InnerSpotAngle: 10
   m_CookieSize2D: {x: 0.5, y: 0.5}
@@ -68290,8 +68290,8 @@ Light:
   serializedVersion: 13
   m_Type: 2
   m_Color: {r: 1, g: 0.957, b: 0.839, a: 1}
-  m_Intensity: 0.5
-  m_Range: 1
+  m_Intensity: 1
+  m_Range: 2
   m_SpotAngle: 80
   m_InnerSpotAngle: 10
   m_CookieSize2D: {x: 0.5, y: 0.5}
@@ -71237,8 +71237,8 @@ Light:
   serializedVersion: 13
   m_Type: 2
   m_Color: {r: 1, g: 0.957, b: 0.839, a: 1}
-  m_Intensity: 0.5
-  m_Range: 1
+  m_Intensity: 1
+  m_Range: 2
   m_SpotAngle: 80
   m_InnerSpotAngle: 10
   m_CookieSize2D: {x: 0.5, y: 0.5}
@@ -72680,8 +72680,8 @@ Light:
   serializedVersion: 13
   m_Type: 2
   m_Color: {r: 1, g: 0.957, b: 0.839, a: 1}
-  m_Intensity: 0.5
-  m_Range: 1
+  m_Intensity: 1
+  m_Range: 2
   m_SpotAngle: 80
   m_InnerSpotAngle: 10
   m_CookieSize2D: {x: 0.5, y: 0.5}
@@ -81905,8 +81905,8 @@ Light:
   serializedVersion: 13
   m_Type: 2
   m_Color: {r: 1, g: 0.957, b: 0.839, a: 1}
-  m_Intensity: 0.5
-  m_Range: 1
+  m_Intensity: 1
+  m_Range: 2
   m_SpotAngle: 80
   m_InnerSpotAngle: 10
   m_CookieSize2D: {x: 0.5, y: 0.5}
@@ -83607,8 +83607,8 @@ Light:
   serializedVersion: 13
   m_Type: 2
   m_Color: {r: 1, g: 0.957, b: 0.839, a: 1}
-  m_Intensity: 0.5
-  m_Range: 1
+  m_Intensity: 1
+  m_Range: 2
   m_SpotAngle: 80
   m_InnerSpotAngle: 10
   m_CookieSize2D: {x: 0.5, y: 0.5}
@@ -90174,8 +90174,8 @@ Light:
   serializedVersion: 13
   m_Type: 2
   m_Color: {r: 1, g: 0.957, b: 0.839, a: 1}
-  m_Intensity: 0.5
-  m_Range: 1
+  m_Intensity: 1
+  m_Range: 2
   m_SpotAngle: 80
   m_InnerSpotAngle: 10
   m_CookieSize2D: {x: 0.5, y: 0.5}
@@ -92375,8 +92375,8 @@ Light:
   serializedVersion: 13
   m_Type: 2
   m_Color: {r: 1, g: 0.957, b: 0.839, a: 1}
-  m_Intensity: 0.5
-  m_Range: 1
+  m_Intensity: 1
+  m_Range: 2
   m_SpotAngle: 80
   m_InnerSpotAngle: 10
   m_CookieSize2D: {x: 0.5, y: 0.5}
@@ -94934,8 +94934,8 @@ Light:
   serializedVersion: 13
   m_Type: 2
   m_Color: {r: 1, g: 0.957, b: 0.839, a: 1}
-  m_Intensity: 0.5
-  m_Range: 1
+  m_Intensity: 1
+  m_Range: 2
   m_SpotAngle: 80
   m_InnerSpotAngle: 10
   m_CookieSize2D: {x: 0.5, y: 0.5}
@@ -101719,8 +101719,8 @@ Light:
   serializedVersion: 13
   m_Type: 2
   m_Color: {r: 1, g: 0.957, b: 0.839, a: 1}
-  m_Intensity: 0.5
-  m_Range: 1
+  m_Intensity: 1
+  m_Range: 2
   m_SpotAngle: 80
   m_InnerSpotAngle: 10
   m_CookieSize2D: {x: 0.5, y: 0.5}
@@ -111584,8 +111584,8 @@ Light:
   serializedVersion: 13
   m_Type: 2
   m_Color: {r: 1, g: 0.957, b: 0.839, a: 1}
-  m_Intensity: 0.5
-  m_Range: 1
+  m_Intensity: 1
+  m_Range: 2
   m_SpotAngle: 80
   m_InnerSpotAngle: 10
   m_CookieSize2D: {x: 0.5, y: 0.5}
@@ -113503,8 +113503,8 @@ Light:
   serializedVersion: 13
   m_Type: 2
   m_Color: {r: 1, g: 0.957, b: 0.839, a: 1}
-  m_Intensity: 0.5
-  m_Range: 1
+  m_Intensity: 1
+  m_Range: 2
   m_SpotAngle: 80
   m_InnerSpotAngle: 10
   m_CookieSize2D: {x: 0.5, y: 0.5}
@@ -115138,8 +115138,8 @@ Light:
   serializedVersion: 13
   m_Type: 2
   m_Color: {r: 1, g: 0.957, b: 0.839, a: 1}
-  m_Intensity: 0.5
-  m_Range: 1
+  m_Intensity: 1
+  m_Range: 2
   m_SpotAngle: 80
   m_InnerSpotAngle: 10
   m_CookieSize2D: {x: 0.5, y: 0.5}
@@ -116971,8 +116971,8 @@ Light:
   serializedVersion: 13
   m_Type: 2
   m_Color: {r: 1, g: 0.957, b: 0.839, a: 1}
-  m_Intensity: 0.5
-  m_Range: 1
+  m_Intensity: 1
+  m_Range: 2
   m_SpotAngle: 80
   m_InnerSpotAngle: 10
   m_CookieSize2D: {x: 0.5, y: 0.5}
@@ -121262,8 +121262,8 @@ Light:
   serializedVersion: 13
   m_Type: 2
   m_Color: {r: 1, g: 0.957, b: 0.839, a: 1}
-  m_Intensity: 0.5
-  m_Range: 1
+  m_Intensity: 1
+  m_Range: 2
   m_SpotAngle: 80
   m_InnerSpotAngle: 10
   m_CookieSize2D: {x: 0.5, y: 0.5}
@@ -123853,8 +123853,8 @@ Light:
   serializedVersion: 13
   m_Type: 2
   m_Color: {r: 1, g: 0.957, b: 0.839, a: 1}
-  m_Intensity: 0.5
-  m_Range: 1
+  m_Intensity: 1
+  m_Range: 2
   m_SpotAngle: 80
   m_InnerSpotAngle: 10
   m_CookieSize2D: {x: 0.5, y: 0.5}
@@ -126310,8 +126310,8 @@ Light:
   serializedVersion: 13
   m_Type: 2
   m_Color: {r: 1, g: 0.957, b: 0.839, a: 1}
-  m_Intensity: 0.5
-  m_Range: 1
+  m_Intensity: 1
+  m_Range: 2
   m_SpotAngle: 80
   m_InnerSpotAngle: 10
   m_CookieSize2D: {x: 0.5, y: 0.5}

@@ -17,6 +17,13 @@ public static class PlayerBootstrap
     [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.AfterSceneLoad)]
     public static void AutoSetupOnPlay()
     {
+        // PlayerBootstrap hanya dikhususkan untuk scene kota utama (Module 2)
+        var activeScene = UnityEngine.SceneManagement.SceneManager.GetActiveScene();
+        if (activeScene.name != "Module 2")
+        {
+            return;
+        }
+
         SetupGameProject();
     }
 
@@ -41,6 +48,7 @@ public static class PlayerBootstrap
             "Assets/Scenes/SubScenes/SubScene_2_0.unity",
             "Assets/Scenes/SubScenes/SubScene_2_1.unity",
             "Assets/Scenes/SubScenes/SubScene_2_2.unity",
+            "Assets/Scenes/Module8_Cinematics.unity",
         };
 
         bool modified = false;

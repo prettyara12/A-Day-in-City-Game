@@ -29,9 +29,10 @@ public class PlayerController : MonoBehaviour
     private bool isGrounded = true;
     private const float gravity = -9.81f;
 
-    // Animator parameter hashes for SimpleCharacter_5.0
+    // Animator parameter hashes for SimpleCharacter_5.0 and SimpleCitizens
     private static readonly int ParamSpeedF = Animator.StringToHash("Speed_f");
     private static readonly int ParamGrounded = Animator.StringToHash("Grounded");
+    private static readonly int ParamGroundedB = Animator.StringToHash("Grounded_b");
     private static readonly int ParamStaticB = Animator.StringToHash("Static_b");
     private static readonly int ParamJumpB = Animator.StringToHash("Jump_b");
     private static readonly int ParamAnimationInt = Animator.StringToHash("Animation_int");
@@ -79,18 +80,62 @@ public class PlayerController : MonoBehaviour
             cc.enabled = false;
         }
 
-        // Sesuaikan ukuran kapsul otomatis dengan skala karakter
-        if (ownCapsule != null)
+        // Matikan NavMeshAgent bawaan agar tidak mengunci koordinat player saat WASD
+        UnityEngine.AI.NavMeshAgent agent = GetComponent<UnityEngine.AI.NavMeshAgent>();
+        if (agent != null)
+        {
+            agent.enabled = false;
+        }
+
+        // Matikan motor dan controller mobile bawaan agar tidak bentrok dengan WASD
+        MovableObjectMotor motor = GetComponent<MovableObjectMotor>();
+        if (motor != null)
+        {
+            motor.enabled = false;
+        }
+
+        PlayerAvatarController pac = GetComponent<PlayerAvatarController>();
+        if (pac != null)
+        {
+            pac.enabled = false;
+        }
+
+        // Pastikan Rigidbody isKinematic agar kalkulasi manual tidak di-override fisika
+        Rigidbody rb = GetComponent<Rigidbody>();
+        if (rb != null)
+        {
+            rb.isKinematic = true;
+        }
+
+        // Matikan applyRootMotion agar pergerakan input presisi
+        if (animator != null)
+        {
+            animator.applyRootMotion = false;
+        }
+
+        // Sesuaikan parameter kecepatan dan ukuran jika di skala normal (lossyScale ~ 1.0)
+        float currentScaleY = Mathf.Abs(transform.lossyScale.y);
+        if (currentScaleY > 0.5f && walkSpeed < 1.0f)
+        {
+            walkSpeed = 4.5f;
+            sprintSpeed = 8.0f;
+            jumpHeight = 1.2f;
+            maxStepHeight = 0.45f;
+            bodyRadius = 0.35f;
+            bodyHeight = 1.8f;
+            skinWidth = 0.02f;
+        }
+        else if (ownCapsule != null)
         {
             float scaleX = Mathf.Abs(transform.lossyScale.x);
-            float scaleY = Mathf.Abs(transform.lossyScale.y);
             bodyRadius = Mathf.Max(0.035f, ownCapsule.radius * scaleX);
-            bodyHeight = Mathf.Max(0.16f, ownCapsule.height * scaleY);
+            bodyHeight = Mathf.Max(0.16f, ownCapsule.height * currentScaleY);
         }
 
         if (animator != null)
         {
             animator.SetBool(ParamGrounded, true);
+            animator.SetBool(ParamGroundedB, true);
             animator.SetBool(ParamStaticB, true);
         }
     }
@@ -139,6 +184,11 @@ public class PlayerController : MonoBehaviour
 
         // 2. Calculate movement direction relative to camera
         Vector3 moveDirection = Vector3.zero;
+
+        if (playerCamera == null)
+        {
+            playerCamera = Camera.main;
+        }
 
         if (playerCamera != null)
         {
@@ -279,6 +329,7 @@ public class PlayerController : MonoBehaviour
         if (animator != null)
         {
             animator.SetBool(ParamGrounded, isGrounded);
+            animator.SetBool(ParamGroundedB, isGrounded);
             animator.SetBool(ParamStaticB, true);
 
             float animSpeed = 0f;
