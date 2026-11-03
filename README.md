@@ -70,6 +70,12 @@ Proyek ini dikembangkan sebagai bagian dari pembelajaran mata kuliah **Introduct
 - **Supersampling 2.0x:** Dikonfigurasi dengan `dynamicPixelsPerUnit = 2f` pada resolusi kanvas referensi `1280 × 720` sehingga glif teks selalu tajam kristal tanpa efek pikselasi.
 - **Resilient Lifecycle:** Tahan terhadap opsi *Fast Enter Play Mode* (Reload Domain / Reload Scene disabled) tanpa menyebabkan kebocoran memori (*memory leak*).
 
+### 5. 🎬 Cinematography & Cutscene Sinematik (Modul 8)
+- **Multi-Camera Cut & Blend:** Mengintegrasikan paket *Unity Cinemachine* dan *Timeline* dengan tiga sudut kamera sinematik (`CM_vcam_Wide`, `CM_vcam_Dolly`, `CM_vcam_Waitress`).
+- **Dynamic Dolly Path Animation:** Kamera meluncur (*glide/pan*) secara dinamis di sepanjang trotoar mendekati etalase toko donat.
+- **Pengenalan Karakter Baru:** Menyorot karakter NPC pelayan toko (*Sarah - Waitress*) di konter Donut Shop lengkap dengan kartu banner UI elegan dan jingle audio PCM 16-bit.
+- **Handshake Kontrol Pemain:** Pembekuan otomatis pergerakan karakter dan kamera orang ketiga saat cutscene berlangsung, lalu secara mulus dikembalikan ke kendali pemain saat adegan berakhir.
+
 ---
 
 ## ⌨️ Panduan Kontrol Pemain
@@ -94,6 +100,7 @@ Proyek ini dikembangkan sebagai bagian dari pembelajaran mata kuliah **Introduct
 | **Wanita Melompat** | Trotoar Timur (dekat air mancur) | Melompat di tempat secara terus-menerus (*Jumping in Place*). Menyapa saat pemain mendekat. | *"Halo! Lihat, aku melompat di tempat! Asyik sekali olahraga di trotoar ini!"* |
 | **Pria Pejalan Kaki** | Trotoar Barat | Berjalan kaki otonom melawan arah pemain (ke arah Selatan) dengan sensor anti-tabrakan. Berhenti & melambai saat didekati. | *"Halo bro! Selamat beraktivitas di kota. Tetap semangat!"* |
 | **Pria Barber Shop** | Depan Barber Shop | Berdiri diam di tempat sambil menengok kiri-kanan secara alami. Menyapa jika didekati. | *"Halo! Saya sedang menunggu antrean potong rambut di Barber Shop ini."* |
+| **Sarah (Waitress)** | Konter Donut Shop | Berdiri di depan konter Donut Shop menyapa pengunjung kota. Menjadi fokus adegan cutscene sinematik Modul 8. | *"Selamat datang di Donut Shop! Cobalah menu donat lezat andalan kami hari ini!"* |
 
 ---
 
@@ -105,6 +112,7 @@ Seluruh skrip diletakkan di direktori [`Assets/Scripts/`](file:///d:/Mata%20Kuli
 Assets/Scripts/
 ├── PlayerController.cs        # Logika fisika pergerakan, lompatan, duduk, dan kontrol animasi Player
 ├── ThirdPersonCamera.cs       # Sistem kamera orang ketiga, mouse look, rear alignment, dan zoom
+├── CutsceneTrigger.cs         # Pemicu cutscene Timeline, penguncian dan pemulihan kontrol pemain
 ├── NPCWalker.cs               # AI NPC otonom: navigasi jalan, melompat, menengok, sensor rintangan
 ├── NPCDialogueOverlay.cs      # Sistem kanvas overlay dialog beresolusi tinggi (Overhead & Subtitle)
 ├── NPCWaypointPath.cs         # Komponen rute waypoint visual di scene untuk jalur patroli NPC
@@ -179,6 +187,10 @@ Proyek ini dilengkapi menu kustom di bilah menu Unity (`Tools/`) untuk memudahka
   Mengonfigurasi NPC penjaga di depan bangunan Barber Shop.
 - **`Tools` > `🛍️ Pindahkan Player ke Area Pertokoan (Shopping Street)`**  
   Memindahkan posisi pemain langsung ke trotoar pusat pertokoan untuk pengujian cepat.
+- **`Tools` > `🎬 Setup Cinematography & Cutscene (Modul 8)`**  
+  Mengonfigurasi penuh seluruh sistem sinematografi: Main Camera CinemachineBrain, 3 Virtual Camera, Dolly Path, NPC Sarah, banner UI, dan audio jingle.
+- **`Tools` > `🍩 Teleport ke Donut Shop (Modul 8 Cutscene)`**  
+  Memindahkan posisi pemain langsung ke trotoar depan Donut Shop untuk pengujian instan cutscene sinematik.
 
 ---
 

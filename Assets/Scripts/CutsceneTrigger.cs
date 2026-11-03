@@ -1,6 +1,7 @@
 using System;
 using UnityEngine;
 using UnityEngine.Playables;
+using Unity.Cinemachine;
 
 /// <summary>
 /// Triggers a cutscene Timeline when the player enters the trigger zone (Module 8).
@@ -14,7 +15,7 @@ public class CutsceneTrigger : MonoBehaviour
     public PlayableDirector cutsceneDirector;
 
     [Tooltip("Whether to automatically start the cutscene when the game starts (as shown in the YouTube video).")]
-    public bool playOnStart = true;
+    public bool playOnStart = false;
 
     [Tooltip("Whether the cutscene should only trigger once.")]
     public bool playOnce = true;
@@ -30,6 +31,8 @@ public class CutsceneTrigger : MonoBehaviour
     private GameObject playerObject;
     private PlayerController playerController;
     private MovableObjectMotor objectMotor;
+    private ThirdPersonCamera cachedThirdPersonCamera;
+    private CinemachineBrain cachedCinemachineBrain;
 
     private void Awake()
     {
@@ -48,6 +51,16 @@ public class CutsceneTrigger : MonoBehaviour
     private void Start()
     {
         EnsurePlayerHasController();
+
+        Camera mainCam = Camera.main;
+        if (mainCam != null)
+        {
+            var brain = mainCam.GetComponent<CinemachineBrain>();
+            if (brain != null && !playOnStart)
+            {
+                brain.enabled = false;
+            }
+        }
 
         if (playOnStart && !hasPlayed)
         {
@@ -83,15 +96,33 @@ public class CutsceneTrigger : MonoBehaviour
 
     private void OnTriggerEnter(Collider other)
     {
-        if (hasPlayed && playOnce) return;
+        TryTrigger(other != null ? other.gameObject : null);
+    }
 
-        bool isPlayer = other.CompareTag(playerTag) ||
-                        other.GetComponent<PlayerAvatarController>() != null ||
-                        other.GetComponent<PlayerController>() != null;
+    private void OnCollisionEnter(Collision collision)
+    {
+        TryTrigger(collision != null ? collision.gameObject : null);
+    }
+
+    /// <summary>
+    /// Mencoba memicu cutscene saat player menyentuh toko donat atau area trigger.
+    /// </summary>
+    public void TryTrigger(GameObject hitGo)
+    {
+        if (hasPlayed && playOnce) return;
+        if (hitGo == null) return;
+
+        bool isPlayer = hitGo.CompareTag(playerTag) ||
+                        hitGo.GetComponent<PlayerAvatarController>() != null ||
+                        hitGo.GetComponent<PlayerController>() != null ||
+                        hitGo.GetComponentInParent<PlayerController>() != null ||
+                        (hitGo.transform.root != null && hitGo.transform.root.CompareTag(playerTag)) ||
+                        (hitGo.transform.root != null && hitGo.transform.root.GetComponent<PlayerController>() != null);
 
         if (isPlayer)
         {
-            StartCutscene(other.gameObject);
+            GameObject targetPlayer = hitGo.transform.root != null ? hitGo.transform.root.gameObject : hitGo;
+            StartCutscene(targetPlayer);
         }
     }
 
@@ -119,6 +150,13 @@ public class CutsceneTrigger : MonoBehaviour
                 playerController.enabled = false;
             }
 
+            // Hentikan langkah kaki animasi player agar berdiri tegak saat cutscene
+            Animator playerAnim = playerObject.GetComponent<Animator>();
+            if (playerAnim != null)
+            {
+                playerAnim.SetFloat("Speed_f", 0f);
+            }
+
             // Disable workshop avatar motor during cutscene if present
             objectMotor = playerObject.GetComponent<MovableObjectMotor>();
             if (objectMotor != null)
@@ -129,6 +167,23 @@ public class CutsceneTrigger : MonoBehaviour
 
         // Freeze workshop InputManager
         InputManager.bCanPlayerMove = false;
+
+        // Temporarily disable ThirdPersonCamera so Cinemachine has full smooth control
+        Camera mainCam = Camera.main;
+        if (mainCam != null)
+        {
+            cachedThirdPersonCamera = mainCam.GetComponent<ThirdPersonCamera>();
+            if (cachedThirdPersonCamera != null)
+            {
+                cachedThirdPersonCamera.enabled = false;
+            }
+
+            cachedCinemachineBrain = mainCam.GetComponent<CinemachineBrain>();
+            if (cachedCinemachineBrain != null)
+            {
+                cachedCinemachineBrain.enabled = true;
+            }
+        }
 
         if (cutsceneDirector != null)
         {
@@ -199,10 +254,76 @@ public class CutsceneTrigger : MonoBehaviour
         {
             playerController.enabled = true;
         }
+
+        // Disable CinemachineBrain so standard ThirdPersonCamera resumes full control
+        if (cachedCinemachineBrain != null)
+        {
+            cachedCinemachineBrain.enabled = false;
+            cachedCinemachineBrain = null;
+        }
+        else
+        {
+            Camera mainCam = Camera.main;
+            if (mainCam != null)
+            {
+                var brain = mainCam.GetComponent<CinemachineBrain>();
+                if (brain != null)
+                {
+                    brain.enabled = false;
+                }
+            }
+        }
+
+        // Restore ThirdPersonCamera
+        if (cachedThirdPersonCamera != null)
+        {
+            cachedThirdPersonCamera.enabled = true;
+            cachedThirdPersonCamera.SnapToTarget();
+            cachedThirdPersonCamera = null;
+        }
+        else
+        {
+            Camera mainCam = Camera.main;
+            if (mainCam != null)
+            {
+                var tpc = mainCam.GetComponent<ThirdPersonCamera>();
+                if (tpc != null)
+                {
+                    tpc.enabled = true;
+                    tpc.SnapToTarget();
+                }
+            }
+        }
     }
 
     private void OnDisable()
     {
         OnCutsceneFinished();
+    }
+}
+
+/// <summary>
+/// Proxy untuk meneruskan event sentuhan/tabrakan (misal pada fisik gedung Toko Donut)
+/// langsung ke CutsceneTrigger utama.
+/// </summary>
+public class CutsceneTriggerProxy : MonoBehaviour
+{
+    [Tooltip("Komponen CutsceneTrigger utama yang akan dipicu saat objek ini disentuh.")]
+    public CutsceneTrigger targetTrigger;
+
+    private void OnTriggerEnter(Collider other)
+    {
+        if (targetTrigger != null && other != null)
+        {
+            targetTrigger.TryTrigger(other.gameObject);
+        }
+    }
+
+    private void OnCollisionEnter(Collision collision)
+    {
+        if (targetTrigger != null && collision != null)
+        {
+            targetTrigger.TryTrigger(collision.gameObject);
+        }
     }
 }

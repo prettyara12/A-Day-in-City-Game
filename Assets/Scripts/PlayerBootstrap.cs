@@ -1,4 +1,8 @@
 using UnityEngine;
+using UnityEngine.UI;
+using Unity.Cinemachine;
+using UnityEngine.Playables;
+using UnityEngine.Timeline;
 #if UNITY_EDITOR
 using UnityEditor;
 #endif
@@ -305,6 +309,81 @@ public static class PlayerBootstrap
                 "OK");
         }
     }
+    [MenuItem("Tools/🎬 Setup Cinematography & Cutscene (Modul 8)", false, 7)]
+    public static void MenuSetupCutscene()
+    {
+        EnsureEnvironmentColliders();
+        GameObject playerGo = EnsurePlayerCharacter();
+        EnsureCutsceneSystem(playerGo);
+        MarkSceneDirtySafe();
+
+        EditorUtility.DisplayDialog("Setup Cutscene & Cinematography Selesai!",
+            @"Sistem Cinematography & Cutscene (Modul 8) berhasil diimplementasikan ke dalam kota:
+
+1. WAITRESS SARAH: Berada di konter Donut Shop dengan animasi ramah & sapaan dialog.
+2. VIRTUAL CAMERAS: 3 Kamera Cinemachine (Wide, Dolly Pan menelusuri trotoar, Waitress Medium Shot).
+3. TIMELINE: Cut & Blend sinematik otomatis terintegrasi dengan Banner UI dan Jingle Audio.
+4. TRIGGER ZONE: Terpasang di trotoar depan Donut Shop.
+   • Kontrol WASD pemain dan ThirdPersonCamera dinonaktifkan secara mulus selama cutscene dan dipulihkan kembali setelahnya.
+
+Gunakan menu 'Tools/🍩 Teleport ke Donut Shop' untuk langsung menguji di depan toko!",
+            "OK");
+    }
+
+    [MenuItem("Tools/🍩 Teleport ke Donut Shop (Modul 8 Cutscene)", false, 8)]
+    public static void MenuTeleportToDonutShop()
+    {
+        GameObject playerGo = EnsurePlayerCharacter();
+        if (playerGo != null)
+        {
+            EnsureCutsceneSystem(playerGo);
+            // Posisikan player di trotoar tepat sebelum trigger zone Donut Shop
+            playerGo.transform.position = new Vector3(317.0f, 0.02f, 13.5f);
+            playerGo.transform.rotation = Quaternion.Euler(0f, -40f, 0f); // Menghadap langsung ke arah Toko Donut
+
+            Camera cam = Camera.main;
+            if (cam == null) cam = Object.FindAnyObjectByType<Camera>();
+            if (cam != null)
+            {
+                ThirdPersonCamera tpc = cam.GetComponent<ThirdPersonCamera>();
+                if (tpc != null)
+                {
+                    tpc.SnapToTarget();
+                }
+            }
+
+            MarkSceneDirtySafe();
+
+            EditorUtility.DisplayDialog("Player di Depan Donut Shop!",
+                @"Player berhasil dipindahkan ke trotoar depan Toko Donut (317.0, 0.02, 13.5):
+
+• Menghadap lurus ke arah Donut Shop dan Waitress Sarah.
+• Melangkahlah maju 1-2 langkah dengan tombol [W] untuk masuk ke Trigger Zone dan menyaksikan Cutscene Sinematik!
+
+Klik Play (▶) lalu tekan [W] untuk mencoba!",
+                "OK");
+        }
+    }
+
+    /// <summary>
+    /// Digunakan untuk menjalankan setup otomatis via Unity batchmode di command line.
+    /// </summary>
+    public static void BatchSetupCutscene()
+    {
+        Debug.Log("[PlayerBootstrap] Memulai BatchSetupCutscene...");
+        var scene = UnityEditor.SceneManagement.EditorSceneManager.OpenScene("Assets/Module 2.unity");
+        if (scene.IsValid())
+        {
+            SetupGameProject();
+            UnityEditor.SceneManagement.EditorSceneManager.SaveScene(scene);
+            Debug.Log("[PlayerBootstrap] BatchSetupCutscene sukses dan scene Module 2 berhasil disimpan!");
+        }
+        else
+        {
+            Debug.LogError("[PlayerBootstrap] Gagal membuka scene Assets/Module 2.unity!");
+        }
+    }
+
 #endif
 
     /// <summary>
@@ -373,6 +452,17 @@ public static class PlayerBootstrap
         {
             Debug.LogWarning($"[PlayerBootstrap] Peringatan saat setup SubSceneManager: {ex.Message}");
         }
+
+        // 11. Setup Cinematography & Cutscene (Modul 8)
+        try
+        {
+            EnsureCutsceneSystem(playerGo);
+        }
+        catch (System.Exception ex)
+        {
+            Debug.LogWarning($"[PlayerBootstrap] Peringatan saat setup Cutscene Modul 8: {ex.Message}");
+        }
+
 
         Debug.Log("[PlayerBootstrap] Berhasil mengonfigurasi 1 Player (WASD), NPC Mandiri, Quizmaster Steve & Portal Transition, 2 Mobil Manual Berjalan, dan Multi-Scene Manager (Modul 6)!");
     }
@@ -1938,5 +2028,396 @@ public static class PlayerBootstrap
 #endif
         return managerGo;
     }
-}
 
+    /// <summary>
+    /// Menyiapkan sistem Sinematografi & Cutscene (Modul 8) di area Donut Shop:
+    /// - CinemachineBrain pada Main Camera.
+    /// - Karakter NPC Sarah (Waitress) di konter Donut Shop.
+    /// - Virtual Cameras (Wide, Dolly Pan, Waitress Medium Shot).
+    /// - UI Cutscene Banner.
+    /// - PlayableDirector Cutscene_Manager dengan City_CutsceneTimeline.playable & AudioSource Jingle.
+    /// - CutsceneTriggerZone di trotoar depan Donut Shop.
+    /// </summary>
+    public static GameObject EnsureCutsceneSystem(GameObject playerGo = null)
+    {
+        // 1. Setup CinemachineBrain pada Main Camera
+        Camera mainCam = Camera.main;
+        if (mainCam == null) mainCam = Object.FindAnyObjectByType<Camera>();
+        CinemachineBrain brain = null;
+        if (mainCam != null)
+        {
+            brain = mainCam.GetComponent<CinemachineBrain>();
+            if (brain == null) brain = mainCam.gameObject.AddComponent<CinemachineBrain>();
+            brain.DefaultBlend = new CinemachineBlendDefinition(CinemachineBlendDefinition.Styles.EaseInOut, 0.8f);
+            brain.UpdateMethod = CinemachineBrain.UpdateMethods.LateUpdate;
+            brain.enabled = false;
+        }
+
+        // 2. Tentukan posisi Donut Shop
+        Vector3 donutShopPos = new Vector3(316.0f, 0.02f, 15.0f);
+        GameObject donutPoi = GameObject.Find("POI_DonutShop");
+        if (donutPoi != null)
+        {
+            donutShopPos = new Vector3(donutPoi.transform.position.x - 0.2f, 0.02f, donutPoi.transform.position.z + 1.5f);
+        }
+
+        // 3. Setup Sarah (Waitress) di depan konter Donut Shop
+        GameObject sarahGo = GameObject.Find("NPC_Sarah_Waitress");
+        if (sarahGo == null)
+        {
+            sarahGo = GameObject.Find("SimplePeople_Waitress_White");
+            if (sarahGo != null && sarahGo.scene.name != "Module 2") sarahGo = null;
+        }
+        if (sarahGo == null)
+        {
+#if UNITY_EDITOR
+            string waitressPrefabPath = "Assets/Develop 3D Mobile Games in Unity/Assets/SimpleWorldVol1/SimplePeople/Prefabs/SimplePeople_Waitress_White.prefab";
+            GameObject prefab = AssetDatabase.LoadAssetAtPath<GameObject>(waitressPrefabPath);
+            if (prefab != null)
+            {
+                sarahGo = (GameObject)PrefabUtility.InstantiatePrefab(prefab);
+            }
+#endif
+            if (sarahGo == null)
+            {
+                sarahGo = new GameObject("NPC_Sarah_Waitress");
+            }
+        }
+
+        sarahGo.name = "NPC_Sarah_Waitress";
+        sarahGo.tag = "NPC";
+        sarahGo.transform.position = donutShopPos;
+        sarahGo.transform.rotation = Quaternion.Euler(0f, 135f, 0f);
+        sarahGo.transform.localScale = new Vector3(0.1f, 0.1f, 0.1f);
+        sarahGo.SetActive(true);
+
+        AutoEnsureCharacterMaterial(sarahGo);
+
+        // Animator Sarah
+        Animator anim = sarahGo.GetComponent<Animator>();
+        if (anim == null) anim = sarahGo.AddComponent<Animator>();
+#if UNITY_EDITOR
+        RuntimeAnimatorController animCtrl = AssetDatabase.LoadAssetAtPath<RuntimeAnimatorController>(AnimatorControllerPath);
+        if (animCtrl != null) anim.runtimeAnimatorController = animCtrl;
+#endif
+        anim.applyRootMotion = false;
+        anim.SetInteger("Animation_type", 1);
+
+        // Interaksi dialog
+        NPCWalker walker = sarahGo.GetComponent<NPCWalker>();
+        if (walker == null) walker = sarahGo.AddComponent<NPCWalker>();
+        walker.characterDisplayName = "Sarah (Waitress)";
+        walker.characterLine = "Selamat datang di Donut Shop! Cobalah menu donat lezat andalan kami hari ini!";
+        walker.navMode = NPCWalker.NavigationMode.Stationary;
+        walker.isLookingAroundInPlace = true;
+        walker.lookAroundAngle = 30f;
+        walker.enablePlayerInteraction = true;
+        walker.interactionDistance = 1.8f;
+        if (playerGo != null) walker.playerTarget = playerGo.transform;
+
+        // 4. Root Container untuk Cutscene
+        GameObject rootGo = GameObject.Find("[MODULE8_CUTSCENE]");
+        if (rootGo == null)
+        {
+            rootGo = new GameObject("[MODULE8_CUTSCENE]");
+        }
+
+        // Target fokus di titik tengah gedung Toko Donut (bukan di kaki Sarah)
+        GameObject shopFocusGo = GameObject.Find("Target_DonutShopCenter");
+        if (shopFocusGo == null)
+        {
+            shopFocusGo = new GameObject("Target_DonutShopCenter");
+            shopFocusGo.transform.SetParent(rootGo.transform);
+        }
+        GameObject donutShopGo = GameObject.Find("donut_shop");
+        Vector3 shopCenter = (donutShopGo != null)
+            ? new Vector3(donutShopGo.transform.position.x, donutShopGo.transform.position.y + 0.95f, donutShopGo.transform.position.z)
+            : new Vector3(315.62f, 0.95f, 16.29f);
+        shopFocusGo.transform.position = shopCenter;
+
+        // 5. CM_vcam_Wide
+        GameObject wideCamGo = GameObject.Find("CM_vcam_Wide");
+        if (wideCamGo == null)
+        {
+            wideCamGo = new GameObject("CM_vcam_Wide");
+            wideCamGo.transform.SetParent(rootGo.transform);
+        }
+        wideCamGo.transform.position = new Vector3(320.0f, 2.6f, 10.2f);
+        CinemachineVirtualCamera vcamWide = wideCamGo.GetComponent<CinemachineVirtualCamera>();
+        if (vcamWide == null) vcamWide = wideCamGo.AddComponent<CinemachineVirtualCamera>();
+        vcamWide.Priority = 0;
+        vcamWide.m_Lens.FieldOfView = 52f; // Sudut lebar arsitektural menyorot seluruh gedung toko donat
+        vcamWide.m_LookAt = shopFocusGo.transform; // Arahkan fokus ke titik tengah toko donat
+        var wideComposer = vcamWide.GetCinemachineComponent<CinemachineComposer>();
+        if (wideComposer == null) wideComposer = vcamWide.AddCinemachineComponent<CinemachineComposer>();
+        wideComposer.m_TrackedObjectOffset = Vector3.zero;
+        wideComposer.m_ScreenX = 0.5f;
+        wideComposer.m_ScreenY = 0.5f;
+        wideComposer.m_DeadZoneWidth = 0f;
+        wideComposer.m_DeadZoneHeight = 0f;
+        wideComposer.m_SoftZoneWidth = 0.8f;
+        wideComposer.m_SoftZoneHeight = 0.8f;
+
+        // 6. Dolly Track & CM_vcam_Dolly (Mengitari / memutari Toko Donut 360 derajat)
+        GameObject dollyTrackGo = GameObject.Find("DollyTrack_DonutShop");
+        if (dollyTrackGo == null)
+        {
+            dollyTrackGo = new GameObject("DollyTrack_DonutShop");
+            dollyTrackGo.transform.SetParent(rootGo.transform);
+        }
+        dollyTrackGo.transform.position = Vector3.zero;
+        dollyTrackGo.transform.rotation = Quaternion.identity;
+        CinemachineSmoothPath smoothPath = dollyTrackGo.GetComponent<CinemachineSmoothPath>();
+        if (smoothPath == null) smoothPath = dollyTrackGo.AddComponent<CinemachineSmoothPath>();
+        smoothPath.m_Looped = false;
+        smoothPath.m_Waypoints = new CinemachineSmoothPath.Waypoint[]
+        {
+            // Waypoint 0: Depan-Timur di jalan/trotoar depan toko donat
+            new CinemachineSmoothPath.Waypoint { position = new Vector3(319.4f, 2.1f, 13.0f), roll = 0f },
+            // Waypoint 1: Sudut Utara-Timur di tikungan jalan samping toko donat
+            new CinemachineSmoothPath.Waypoint { position = new Vector3(318.6f, 2.5f, 19.8f), roll = 0f },
+            // Waypoint 2: Belakang Barat-Utara elevated tinggi menyorot donat raksasa di atas atap
+            new CinemachineSmoothPath.Waypoint { position = new Vector3(312.2f, 3.2f, 17.5f), roll = 0f },
+            // Waypoint 3: Kembali memutari ke arah depan toko donat
+            new CinemachineSmoothPath.Waypoint { position = new Vector3(318.2f, 1.8f, 12.2f), roll = 0f }
+        };
+
+        GameObject dollyCamGo = GameObject.Find("CM_vcam_Dolly");
+        if (dollyCamGo == null)
+        {
+            dollyCamGo = new GameObject("CM_vcam_Dolly");
+            dollyCamGo.transform.SetParent(rootGo.transform);
+        }
+        dollyCamGo.transform.position = new Vector3(319.4f, 2.1f, 13.0f);
+        CinemachineVirtualCamera vcamDolly = dollyCamGo.GetComponent<CinemachineVirtualCamera>();
+        if (vcamDolly == null) vcamDolly = dollyCamGo.AddComponent<CinemachineVirtualCamera>();
+        vcamDolly.Priority = 0;
+        vcamDolly.m_Lens.FieldOfView = 50f; // Sudut pandang luas untuk sapuan sinematik mengitari toko donat
+        vcamDolly.m_LookAt = shopFocusGo.transform; // Fokus memusat ke titik tengah toko donat saat kamera berputar
+        var dollyComponent = vcamDolly.GetCinemachineComponent<CinemachineTrackedDolly>();
+        if (dollyComponent == null) dollyComponent = vcamDolly.AddCinemachineComponent<CinemachineTrackedDolly>();
+        dollyComponent.m_Path = smoothPath;
+        dollyComponent.m_CameraUp = CinemachineTrackedDolly.CameraUpMode.Default;
+
+        // Pasang CinemachineComposer agar kamera aktif berputar mengunci pandangan ke gedung toko donat
+        var dollyComposer = vcamDolly.GetCinemachineComponent<CinemachineComposer>();
+        if (dollyComposer == null) dollyComposer = vcamDolly.AddCinemachineComponent<CinemachineComposer>();
+        dollyComposer.m_TrackedObjectOffset = Vector3.zero;
+        dollyComposer.m_ScreenX = 0.5f;
+        dollyComposer.m_ScreenY = 0.5f;
+        dollyComposer.m_DeadZoneWidth = 0f;
+        dollyComposer.m_DeadZoneHeight = 0f;
+        dollyComposer.m_SoftZoneWidth = 0.8f;
+        dollyComposer.m_SoftZoneHeight = 0.8f;
+        dollyComposer.m_HorizontalDamping = 0.1f;
+        dollyComposer.m_VerticalDamping = 0.1f;
+
+        Animator dollyAnim = dollyCamGo.GetComponent<Animator>();
+        if (dollyAnim == null) dollyAnim = dollyCamGo.AddComponent<Animator>();
+
+        // 7. CM_vcam_Waitress (Medium Portrait Shot)
+        GameObject waitressFocusGo = GameObject.Find("Target_WaitressFocus");
+        if (waitressFocusGo == null)
+        {
+            waitressFocusGo = new GameObject("Target_WaitressFocus");
+            waitressFocusGo.transform.SetParent(rootGo.transform);
+        }
+        waitressFocusGo.transform.position = sarahGo.transform.position + new Vector3(0f, 0.14f, 0f);
+
+        GameObject waitressCamGo = GameObject.Find("CM_vcam_Waitress");
+        if (waitressCamGo == null)
+        {
+            waitressCamGo = new GameObject("CM_vcam_Waitress");
+            waitressCamGo.transform.SetParent(rootGo.transform);
+        }
+        waitressCamGo.transform.position = new Vector3(317.8f, 0.28f, 13.8f);
+        CinemachineVirtualCamera vcamWaitress = waitressCamGo.GetComponent<CinemachineVirtualCamera>();
+        if (vcamWaitress == null) vcamWaitress = waitressCamGo.AddComponent<CinemachineVirtualCamera>();
+        vcamWaitress.Priority = 0;
+        vcamWaitress.m_Lens.FieldOfView = 40f; // Medium shot terbuka memperlihatkan etalase & Sarah
+        vcamWaitress.m_LookAt = waitressFocusGo.transform; // Fokus terarah tepat ke tubuh atas Sarah & konter
+        var waitressComposer = vcamWaitress.GetCinemachineComponent<CinemachineComposer>();
+        if (waitressComposer == null) waitressComposer = vcamWaitress.AddCinemachineComponent<CinemachineComposer>();
+        waitressComposer.m_TrackedObjectOffset = Vector3.zero;
+        waitressComposer.m_ScreenX = 0.5f;
+        waitressComposer.m_ScreenY = 0.5f;
+        waitressComposer.m_DeadZoneWidth = 0f;
+        waitressComposer.m_DeadZoneHeight = 0f;
+        waitressComposer.m_SoftZoneWidth = 0.8f;
+        waitressComposer.m_SoftZoneHeight = 0.8f;
+
+        // 8. UI Cutscene Banner
+        GameObject bannerGo = EnsureCutsceneBanner(rootGo);
+
+        // 9. Cutscene_Manager (PlayableDirector & AudioSource)
+        GameObject managerGo = GameObject.Find("Cutscene_Manager");
+        if (managerGo == null)
+        {
+            managerGo = new GameObject("Cutscene_Manager");
+            managerGo.transform.SetParent(rootGo.transform);
+        }
+        AudioSource audioSource = managerGo.GetComponent<AudioSource>();
+        if (audioSource == null) audioSource = managerGo.AddComponent<AudioSource>();
+        audioSource.playOnAwake = false;
+        audioSource.spatialBlend = 0f;
+#if UNITY_EDITOR
+        AudioClip jingleClip = AssetDatabase.LoadAssetAtPath<AudioClip>("Assets/Audio/CutsceneJingle.wav");
+        if (jingleClip != null) audioSource.clip = jingleClip;
+#endif
+
+        PlayableDirector director = managerGo.GetComponent<PlayableDirector>();
+        if (director == null) director = managerGo.AddComponent<PlayableDirector>();
+        director.playOnAwake = false;
+#if UNITY_EDITOR
+        TimelineAsset timelineAsset = AssetDatabase.LoadAssetAtPath<TimelineAsset>("Assets/Timelines/City_CutsceneTimeline.playable");
+        if (timelineAsset == null)
+        {
+            timelineAsset = AssetDatabase.LoadAssetAtPath<TimelineAsset>("Assets/Timelines/Module8_CutsceneTimeline.playable");
+        }
+        if (timelineAsset != null)
+        {
+            director.playableAsset = timelineAsset;
+
+            // Hubungkan scene bindings
+            foreach (var track in timelineAsset.GetOutputTracks())
+            {
+                if (track is CinemachineTrack)
+                {
+                    if (brain != null) director.SetGenericBinding(track, brain);
+                }
+                else if (track is AnimationTrack)
+                {
+                    director.SetGenericBinding(track, dollyAnim);
+                }
+                else if (track is ActivationTrack)
+                {
+                    director.SetGenericBinding(track, bannerGo);
+                }
+                else if (track is AudioTrack)
+                {
+                    director.SetGenericBinding(track, audioSource);
+                }
+            }
+
+            // Exposed reference binding untuk ketiga virtual camera
+            director.SetReferenceValue((PropertyName)"c1000000000000000000000000000001", vcamWide);
+            director.SetReferenceValue((PropertyName)"c1000000000000000000000000000002", vcamDolly);
+            director.SetReferenceValue((PropertyName)"c1000000000000000000000000000003", vcamWaitress);
+            // Fallback bindings jika memakai Module8_CutsceneTimeline lama
+            director.SetReferenceValue((PropertyName)"f51104e43b177d8489c79590ea7e0102", vcamDolly);
+            director.SetReferenceValue((PropertyName)"f51104e43b177d8489c79590ea7e0101", vcamWaitress);
+        }
+#endif
+
+        // 10. CutsceneTriggerZone di trotoar depan Donut Shop
+        GameObject triggerGo = GameObject.Find("CutsceneTriggerZone_DonutShop");
+        if (triggerGo == null)
+        {
+            triggerGo = new GameObject("CutsceneTriggerZone_DonutShop");
+            triggerGo.transform.SetParent(rootGo.transform);
+        }
+        triggerGo.transform.position = new Vector3(316.2f, 0.5f, 15.2f);
+        BoxCollider boxCol = triggerGo.GetComponent<BoxCollider>();
+        if (boxCol == null) boxCol = triggerGo.AddComponent<BoxCollider>();
+        boxCol.isTrigger = true;
+        boxCol.size = new Vector3(2.4f, 2.2f, 2.6f);
+
+        CutsceneTrigger trigger = triggerGo.GetComponent<CutsceneTrigger>();
+        if (trigger == null) trigger = triggerGo.AddComponent<CutsceneTrigger>();
+        trigger.cutsceneDirector = director;
+        trigger.playOnStart = false;
+        trigger.playOnce = true;
+        trigger.playerTag = "Player";
+        trigger.introBanner = bannerGo;
+
+        // Pasang CutsceneTriggerProxy pada gedung donut_shop fisik sehingga sentuhan langsung ke bangunan toko memicu cutscene
+        GameObject donutShopBuilding = GameObject.Find("donut_shop");
+        if (donutShopBuilding != null)
+        {
+            CutsceneTriggerProxy proxy = donutShopBuilding.GetComponent<CutsceneTriggerProxy>();
+            if (proxy == null) proxy = donutShopBuilding.AddComponent<CutsceneTriggerProxy>();
+            proxy.targetTrigger = trigger;
+        }
+
+        return rootGo;
+    }
+
+    private static GameObject EnsureCutsceneBanner(GameObject parentRoot)
+    {
+        GameObject bannerGo = GameObject.Find("UI_CutsceneBanner");
+        if (bannerGo != null)
+        {
+            bannerGo.SetActive(false);
+            return bannerGo;
+        }
+
+        GameObject canvasGo = GameObject.Find("Canvas_CutsceneIntro");
+        if (canvasGo == null)
+        {
+            canvasGo = new GameObject("Canvas_CutsceneIntro");
+            if (parentRoot != null) canvasGo.transform.SetParent(parentRoot.transform);
+            Canvas canvas = canvasGo.AddComponent<Canvas>();
+            canvas.renderMode = RenderMode.ScreenSpaceOverlay;
+            canvas.sortingOrder = 99;
+
+            CanvasScaler scaler = canvasGo.AddComponent<CanvasScaler>();
+            scaler.uiScaleMode = CanvasScaler.ScaleMode.ScaleWithScreenSize;
+            scaler.referenceResolution = new Vector2(1280f, 720f);
+            scaler.matchWidthOrHeight = 0.5f;
+
+            canvasGo.AddComponent<GraphicRaycaster>();
+        }
+
+        bannerGo = new GameObject("UI_CutsceneBanner");
+        bannerGo.transform.SetParent(canvasGo.transform, false);
+
+        RectTransform bannerRect = bannerGo.AddComponent<RectTransform>();
+        bannerRect.anchorMin = new Vector2(0.5f, 0.85f);
+        bannerRect.anchorMax = new Vector2(0.5f, 0.85f);
+        bannerRect.pivot = new Vector2(0.5f, 0.5f);
+        bannerRect.sizeDelta = new Vector2(500f, 90f);
+        bannerRect.anchoredPosition = Vector2.zero;
+
+        Image bgImage = bannerGo.AddComponent<Image>();
+        bgImage.color = new Color(0.08f, 0.08f, 0.12f, 0.88f);
+
+        // Header Title
+        GameObject titleGo = new GameObject("TitleText");
+        titleGo.transform.SetParent(bannerGo.transform, false);
+        RectTransform titleRect = titleGo.AddComponent<RectTransform>();
+        titleRect.anchorMin = new Vector2(0f, 0.5f);
+        titleRect.anchorMax = new Vector2(1f, 1f);
+        titleRect.pivot = new Vector2(0.5f, 0.5f);
+        titleRect.offsetMin = new Vector2(15f, 0f);
+        titleRect.offsetMax = new Vector2(-15f, -8f);
+
+        Text titleText = titleGo.AddComponent<Text>();
+        titleText.text = "🍩 DONUT SHOP - SARAH";
+        titleText.font = Resources.GetBuiltinResource<Font>("LegacyRuntime.ttf");
+        titleText.fontSize = 24;
+        titleText.fontStyle = FontStyle.Bold;
+        titleText.alignment = TextAnchor.MiddleCenter;
+        titleText.color = new Color(0.97f, 0.82f, 0.33f, 1f);
+
+        // Subtitle
+        GameObject subGo = new GameObject("SubtitleText");
+        subGo.transform.SetParent(bannerGo.transform, false);
+        RectTransform subRect = subGo.AddComponent<RectTransform>();
+        subRect.anchorMin = new Vector2(0f, 0f);
+        subRect.anchorMax = new Vector2(1f, 0.5f);
+        subRect.pivot = new Vector2(0.5f, 0.5f);
+        subRect.offsetMin = new Vector2(15f, 8f);
+        subRect.offsetMax = new Vector2(-15f, 0f);
+
+        Text subText = subGo.AddComponent<Text>();
+        subText.text = "Temui Sarah di konter Donut Shop untuk mencicipi donat kota!";
+        subText.font = Resources.GetBuiltinResource<Font>("LegacyRuntime.ttf");
+        subText.fontSize = 15;
+        subText.alignment = TextAnchor.MiddleCenter;
+        subText.color = new Color(0.95f, 0.95f, 0.95f, 1f);
+
+        bannerGo.SetActive(false);
+        return bannerGo;
+    }
+
+}
